@@ -62,15 +62,17 @@ async function loadAlbumData(albumId) {
         extraInfoSection.classList.remove('hidden');
     }
     const expertRatings = data.album_ratings || [];
+    
+    // ИЗМЕНЕНИЕ: Добавляем расчет средней экспертной оценки
     if (expertRatings.length > 0) {
-        expertRatings.forEach(review => {
-            const reviewEl = createCommentElement(review.profiles, review.final_score, review.review_text);
-            commentsList.appendChild(reviewEl);
-        });
+        const avgExpertScore = expertRatings.reduce((acc, r) => acc + r.final_score, 0) / expertRatings.length;
+        expertRatingEl.textContent = avgExpertScore.toFixed(2);
+        expertRatingEl.style.color = getScoreColor(avgExpertScore);
     } else {
         expertRatingEl.textContent = '-.--';
         expertRatingEl.style.color = getScoreColor(null);
     }
+
     const allTrackRatings = data.tracks.flatMap(track => track.ratings || []);
     if (allTrackRatings.length > 0) {
         const sum = allTrackRatings.reduce((acc, r) => acc + r.score, 0);
