@@ -210,12 +210,32 @@ div.search-result-item { cursor: default; } /* Для некликабельны
 /* --- Карточки (Главная страница) --- */
 .horizontal-scroll-container { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; -ms-overflow-style: none; }
 .horizontal-scroll-container::-webkit-scrollbar { display: none; }
-.card-link { text-decoration: none; color: inherit; display: block; flex: 0 0 250px; }
+.card-link { text-decoration: none; color: inherit; display: block; flex: 0 0 250px; min-width: 0; }
 .card { border: none; border-radius: var(--radius-md); background-color: var(--card-bg); overflow: hidden; transition: var(--transition-main); }
 .card-link:hover .card { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-.card img { width: 100%; height: 250px; object-fit: cover; display: block; }
-.card h3 { margin: 1rem 1rem 0.25rem 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card p { margin: 0 1rem 1rem 1rem; color: var(--text-color-secondary); font-size: 0.9em; }
+.card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
+.card-body {
+    padding: 1rem;
+}
+.card-body h3 {
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.card-body p {
+    margin: 0;
+    color: var(--text-color-secondary);
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* --- Модальные окна --- */
 .modal-overlay {
@@ -491,9 +511,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     /* --- КАРТОЧКИ НА ГЛАВНОЙ --- */
     .card-link {
         flex: 0 0 200px; /* Сделать карточки немного меньше */
-    }
-     .card img {
-        height: 200px;
     }
 }
 

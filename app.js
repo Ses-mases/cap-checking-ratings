@@ -76,8 +76,10 @@ async function loadRecentReleases() {
             cardLink.innerHTML = `
                 <div class="card">
                     <img src="${coverSource}" alt="Обложка">
-                    <h3>${release.title}</h3>
-                    <p>${release.artistName}</p>
+                    <div class="card-body">
+                        <h3>${release.title}</h3>
+                        <p>${release.artistName}</p>
+                    </div>
                 </div>
             `;
             recentReleasesContainer.appendChild(cardLink);
