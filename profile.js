@@ -45,7 +45,6 @@ function initializeProfileEditor(user) {
                 originalUsername = data.username || 'Имя не указано';
                 currentAvatarUrl = data.avatar_url;
                 
-                // ИЗМЕНЕНИЕ: Загружаем оптимизированную версию аватара (120px -> 240px)
                 originalAvatarSrc = getTransformedImageUrl(data.avatar_url, { width: 240, height: 240, resize: 'cover' }) || 'https://via.placeholder.com/150';
                 
                 profileUsername.textContent = originalUsername;
@@ -88,25 +87,47 @@ function initializeProfileEditor(user) {
             
             if (currentAvatarUrl) {
                 try {
-                    // Извлекаем путь к файлу из полного URL
                     oldAvatarPath = new URL(currentAvatarUrl).pathname.split('/avatars/')[1];
                 } catch(e) { 
                     console.error("Не удалось распарсить старый URL аватара:", e); 
                 }
             }
 
-            // Шаг 1: Если есть новый файл, загружаем его
+            // VVV --- НАЧАЛО ИЗМЕНЕНИЙ: КОНВЕРТАЦИЯ И СЖАТИЕ ИЗОБРАЖЕНИЯ --- VVV
             if (file) {
-                const fileExt = file.name.split('.').pop();
-                const safeFileName = `${user.id}-${Date.now()}.${fileExt}`;
+                let processedFile;
+                try {
+                    // Опции для сжатия: преобразуем в JPEG и ограничиваем размер
+                    const options = {
+                      maxSizeMB: 1,
+                      maxWidthOrHeight: 1024,
+                      useWebWorker: true,
+                      fileType: 'image/jpeg',
+                    };
+                    updateStatus.textContent = 'Обработка изображения...';
+                    processedFile = await imageCompression(file, options);
+                } catch (compressionError) {
+                    console.error('Ошибка обработки изображения:', compressionError);
+                    throw new Error('Не удалось обработать изображение. Попробуйте другой файл.');
+                }
+                
+                updateStatus.textContent = 'Загрузка аватара...';
+                // Генерируем имя файла с расширением .jpg, так как мы его конвертировали
+                const safeFileName = `${user.id}-${Date.now()}.jpg`;
                 const filePath = `public/${safeFileName}`;
                 
-                const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, file);
-                if (uploadError) throw new Error(`Ошибка загрузки файла: ${uploadError.message}`);
+                // Загружаем обработанный файл
+                const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, processedFile);
+                if (uploadError) {
+                    // Улучшаем сообщение об ошибке для пользователя
+                    console.error('Ошибка загрузки файла Supabase:', uploadError);
+                    throw new Error('Ошибка загрузки файла. Проверьте интернет-соединение или попробуйте другое фото.');
+                }
                 
                 const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
                 newAvatarPublicUrl = data.publicUrl;
             }
+            // ^^^ --- КОНЕЦ ИЗМЕНЕНИЙ --- ^^^
 
             // Шаг 2: Готовим и отправляем обновления в базу данных
             const updates = { username: newUsername, updated_at: new Date() };
@@ -128,11 +149,9 @@ function initializeProfileEditor(user) {
             updateStatus.textContent = 'Профиль успешно обновлен!';
             updateStatus.style.color = 'green';
             
-            // Обновляем локальные переменные для следующего редактирования
             originalUsername = newUsername;
             profileUsername.textContent = newUsername;
             if (newAvatarPublicUrl) {
-                // ИЗМЕНЕНИЕ: Отображаем сразу оптимизированный аватар
                 originalAvatarSrc = getTransformedImageUrl(newAvatarPublicUrl, { width: 240, height: 240, resize: 'cover' });
                 currentAvatarUrl = newAvatarPublicUrl;
                 profileAvatar.src = originalAvatarSrc;
@@ -144,7 +163,6 @@ function initializeProfileEditor(user) {
             updateStatus.textContent = `Ошибка: ${error.message}`;
             updateStatus.style.color = 'var(--error-color)';
         } finally {
-            // Гарантированно разблокируем кнопки
             saveProfileButton.disabled = false;
             cancelEditButton.disabled = false;
         }
@@ -159,7 +177,6 @@ function initializeProfileEditor(user) {
     avatarInput.addEventListener('change', () => {
         const file = avatarInput.files[0];
         if (file) {
-            // Показываем превью нового аватара
             profileAvatar.src = URL.createObjectURL(file);
         }
     });
@@ -195,10 +212,8 @@ function initializeTrackRatings(user) {
                 const reviewText = rating.review_text || '';
                 const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
                 
-                // ИЗМЕНЕНИЕ: Оптимизируем обложку в списке (60px -> 120px)
                 const coverUrl = getTransformedImageUrl(rating.tracks.albums?.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
 
-                // ИЗМЕНЕНИЕ: Заменяем кнопки на иконки
                 item.innerHTML = `
                     <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
                     <div class="review-item-body">
@@ -227,7 +242,7 @@ function initializeTrackRatings(user) {
         const target = e.target.closest('.delete-btn, .edit-btn');
         if (!target) return;
 
-        target.style.pointerEvents = 'none'; // Блокируем кнопку на время операции
+        target.style.pointerEvents = 'none'; 
 
         if (target.classList.contains('delete-btn')) {
             if (confirm('Вы уверены, что хотите удалить эту оценку?')) {
@@ -236,7 +251,7 @@ function initializeTrackRatings(user) {
                     alert('Не удалось удалить оценку.');
                     console.error('Ошибка удаления:', error);
                 } else {
-                    fetchAndRender(); // Перерисовываем список
+                    fetchAndRender(); 
                 }
             }
         }
@@ -250,7 +265,7 @@ function initializeTrackRatings(user) {
             }));
         }
 
-        target.style.pointerEvents = 'auto'; // Разблокируем кнопку
+        target.style.pointerEvents = 'auto';
     });
     
     document.addEventListener('ratingUpdated', fetchAndRender);
@@ -284,10 +299,8 @@ function initializeAlbumRatings(user) {
                 
                 const reviewHtml = rating.review_text ? `<p class="review-item-text">"${rating.review_text}"</p>` : '';
 
-                // ИЗМЕНЕНИЕ: Оптимизируем обложку в списке (60px -> 120px)
                 const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
                 
-                // ИЗМЕНЕНИЕ: Заменяем кнопки на иконки
                 item.innerHTML = `
                     <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
                     <div class="review-item-body">
@@ -372,7 +385,6 @@ function initializeRatingEditModal() {
             console.error('Ошибка обновления:', error);
         } else {
             closeModal();
-            // Отправляем событие, чтобы список оценок обновился
             document.dispatchEvent(new Event('ratingUpdated'));
         }
         submitButton.disabled = false;
