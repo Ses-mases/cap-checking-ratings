@@ -63,7 +63,8 @@ async function loadTrackData(trackId) {
     trackArtist.textContent = data.artists?.name || 'Неизвестный артист';
 
     if (data.albums) {
-        trackCover.src = data.albums.cover_art_url || 'https://via.placeholder.com/250';
+        // ИЗМЕНЕНИЕ: Оптимизируем главную обложку
+        trackCover.src = getTransformedImageUrl(data.albums.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
         albumLinkP.innerHTML = `Альбом: <a href="album.html?id=${data.albums.id}">${data.albums.title}</a>`;
         albumLinkP.classList.remove('hidden');
     } else {

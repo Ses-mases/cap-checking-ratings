@@ -29,7 +29,8 @@ async function loadRecentReleases() {
             id: item.id,
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
-            coverUrl: item.cover_art_url,
+            // ИЗМЕНЕНИЕ: Оптимизируем обложку
+            coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `album.html?id=${item.id}`
         }));
 
@@ -37,7 +38,8 @@ async function loadRecentReleases() {
             id: item.id,
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
-            coverUrl: item.albums?.cover_art_url, 
+            // ИЗМЕНЕНИЕ: Оптимизируем обложку
+            coverUrl: getTransformedImageUrl(item.albums?.cover_art_url, { width: 500, height: 500, resize: 'cover' }), 
             link: `track.html?id=${item.id}`
         }));
 

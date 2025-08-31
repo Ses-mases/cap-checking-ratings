@@ -78,42 +78,89 @@
             <h3>Оценить альбом</h3>
             <form id="album-rating-form">
                 <div class="rating-grid">
+                    <!-- Редкость -->
                     <div class="rating-criterion slider-criterion">
                         <div class="criterion-label">
-                            <label for="rarity-input">Редкость</label>
+                            <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ VVV -->
+                            <div class="criterion-title-wrapper">
+                                <label for="rarity-input">Редкость</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">Распространенность музыкального жанра и формата его исполнения в русскоязычной индустрии</span>
+                                </div>
+                            </div>
+                            <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
                             <span><span id="rarity-value">1</span> / 5</span>
                         </div>
                         <input type="range" id="rarity-input" min="1" max="5" step="1" value="1">
                     </div>
+                    <!-- Целостность -->
                     <div class="rating-criterion slider-criterion">
                         <div class="criterion-label">
-                            <label for="integrity-input">Целостность</label>
+                            <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ VVV -->
+                            <div class="criterion-title-wrapper">
+                                <label for="integrity-input">Целостность</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">Формат релиза, и соблюдение его жанровой и смысловой целостности</span>
+                                </div>
+                            </div>
+                            <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
                             <span><span id="integrity-value">1</span> / 5</span>
                         </div>
                         <input type="range" id="integrity-input" min="1" max="5" step="1" value="1">
                     </div>
+                    <!-- Глубина -->
                     <div class="rating-criterion slider-criterion">
                         <div class="criterion-label">
-                           <label for="depth-input">Глубина</label>
-                           <span><span id="depth-value">1</span> / 5</span>
+                            <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ VVV -->
+                            <div class="criterion-title-wrapper">
+                                <label for="depth-input">Глубина</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">Вертикаль смысла: от игры со звуком и инстинкта к личной рефлексии, общественной мысли и вневременному смыслу</span>
+                                </div>
+                            </div>
+                            <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
+                            <span><span id="depth-value">1</span> / 5</span>
                         </div>
                         <input type="range" id="depth-input" min="1" max="5" step="1" value="1">
                     </div>
+                    <!-- Качество -->
                     <div class="rating-criterion slider-criterion">
                         <div class="criterion-label">
-                            <label for="quality-input">Качество</label>
+                            <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ VVV -->
+                            <div class="criterion-title-wrapper">
+                                <label for="quality-input">Качество</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">Процент реализации релиза по четырем базовым критериям («рифмы/образы», «структура/ритмика», «реализация стиля», «индивидуальность/харизма»), где 1 балл за базовый критерий = 2,5%</span>
+                                </div>
+                            </div>
+                            <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
                             <span><span id="quality-value">10</span>%</span>
                         </div>
                         <input type="range" id="quality-input" min="10" max="100" step="1" value="10">
                     </div>
                 </div>
+                <!-- Влияние -->
                 <div class="rating-criterion slider-criterion">
-                     <div class="criterion-label">
-                        <label for="influence-input">Влияние</label>
+                    <div class="criterion-label">
+                        <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ VVV -->
+                        <div class="criterion-title-wrapper">
+                            <label for="influence-input">Влияние</label>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Потенциальная значимость релиза для музыкальной индустрии</span>
+                            </div>
+                        </div>
+                        <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
                         <span><span id="influence-value">1.12</span></span>
                     </div>
                     <input type="range" id="influence-input" min="1.12" max="2.00" step="0.01" value="1.12">
                 </div>
+
+                <!-- Остальная часть формы остается без изменений -->
                 <div class="final-score-container">
                     Итоговая ценность: <strong id="final-score-display">0.00</strong> / 30.00
                 </div>

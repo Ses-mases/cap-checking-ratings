@@ -44,7 +44,9 @@ function initializeProfileEditor(user) {
             if (data) {
                 originalUsername = data.username || 'Имя не указано';
                 currentAvatarUrl = data.avatar_url;
-                originalAvatarSrc = data.avatar_url || 'https://via.placeholder.com/150';
+                
+                // ИЗМЕНЕНИЕ: Загружаем оптимизированную версию аватара (120px -> 240px)
+                originalAvatarSrc = getTransformedImageUrl(data.avatar_url, { width: 240, height: 240, resize: 'cover' }) || 'https://via.placeholder.com/150';
                 
                 profileUsername.textContent = originalUsername;
                 profileAvatar.src = originalAvatarSrc;
@@ -130,9 +132,10 @@ function initializeProfileEditor(user) {
             originalUsername = newUsername;
             profileUsername.textContent = newUsername;
             if (newAvatarPublicUrl) {
-                originalAvatarSrc = newAvatarPublicUrl;
+                // ИЗМЕНЕНИЕ: Отображаем сразу оптимизированный аватар
+                originalAvatarSrc = getTransformedImageUrl(newAvatarPublicUrl, { width: 240, height: 240, resize: 'cover' });
                 currentAvatarUrl = newAvatarPublicUrl;
-                profileAvatar.src = newAvatarPublicUrl; // Отображаем новый аватар
+                profileAvatar.src = originalAvatarSrc;
             }
             setTimeout(() => exitEditMode(), 2000);
 
@@ -191,8 +194,11 @@ function initializeTrackRatings(user) {
                 
                 const reviewText = rating.review_text || '';
                 const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
-                const coverUrl = rating.tracks.albums?.cover_art_url || 'https://via.placeholder.com/60';
+                
+                // ИЗМЕНЕНИЕ: Оптимизируем обложку в списке (60px -> 120px)
+                const coverUrl = getTransformedImageUrl(rating.tracks.albums?.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
 
+                // ИЗМЕНЕНИЕ: Заменяем кнопки на иконки
                 item.innerHTML = `
                     <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
                     <div class="review-item-body">
@@ -203,8 +209,12 @@ function initializeTrackRatings(user) {
                         ${reviewHtml}
                     </div>
                     <div class="review-item-controls">
-                        <button class="button-secondary edit-btn" data-id="${rating.id}" data-score="${rating.score}" data-review="${encodeURIComponent(reviewText)}">Изменить</button>
-                        <button class="button-secondary delete-btn" data-id="${rating.id}">Удалить</button>
+                        <a class="icon-button edit-btn" title="Изменить" data-id="${rating.id}" data-score="${rating.score}" data-review="${encodeURIComponent(reviewText)}">
+                            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
+                        </a>
+                        <a class="icon-button delete-btn" title="Удалить" data-id="${rating.id}">
+                            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                        </a>
                     </div>`;
                 trackRatingsList.appendChild(item);
             });
@@ -217,7 +227,7 @@ function initializeTrackRatings(user) {
         const target = e.target.closest('.delete-btn, .edit-btn');
         if (!target) return;
 
-        target.disabled = true; // Блокируем кнопку на время операции
+        target.style.pointerEvents = 'none'; // Блокируем кнопку на время операции
 
         if (target.classList.contains('delete-btn')) {
             if (confirm('Вы уверены, что хотите удалить эту оценку?')) {
@@ -240,7 +250,7 @@ function initializeTrackRatings(user) {
             }));
         }
 
-        target.disabled = false; // Разблокируем кнопку
+        target.style.pointerEvents = 'auto'; // Разблокируем кнопку
     });
     
     document.addEventListener('ratingUpdated', fetchAndRender);
@@ -273,8 +283,11 @@ function initializeAlbumRatings(user) {
                 item.className = 'review-item'; 
                 
                 const reviewHtml = rating.review_text ? `<p class="review-item-text">"${rating.review_text}"</p>` : '';
-                const coverUrl = rating.albums.cover_art_url || 'https://via.placeholder.com/60';
+
+                // ИЗМЕНЕНИЕ: Оптимизируем обложку в списке (60px -> 120px)
+                const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
                 
+                // ИЗМЕНЕНИЕ: Заменяем кнопки на иконки
                 item.innerHTML = `
                     <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
                     <div class="review-item-body">
@@ -285,8 +298,12 @@ function initializeAlbumRatings(user) {
                         ${reviewHtml}
                     </div>
                     <div class="review-item-controls">
-                        <a href="album.html?id=${rating.albums.id}" class="button-secondary">Изменить</a>
-                        <button class="button-secondary delete-btn" data-id="${rating.id}">Удалить</button>
+                        <a href="album.html?id=${rating.albums.id}" class="icon-button" title="Изменить">
+                            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
+                        </a>
+                        <a class="icon-button delete-btn" title="Удалить" data-id="${rating.id}">
+                             <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>
+                        </a>
                     </div>`;
                 albumRatingsList.appendChild(item);
             });
@@ -299,15 +316,15 @@ function initializeAlbumRatings(user) {
         const target = e.target.closest('.delete-btn');
         if (target) {
             if (confirm('Вы уверены, что хотите удалить оценку альбома?')) {
-                target.disabled = true;
-                const { error } = await supabaseClient.from('album_ratings').delete().eq('id', e.target.dataset.id);
+                target.style.pointerEvents = 'none';
+                const { error } = await supabaseClient.from('album_ratings').delete().eq('id', target.dataset.id);
                 if (error) {
                     alert('Не удалось удалить оценку.');
                     console.error('Ошибка удаления:', error);
                 } else {
                     fetchAndRender();
                 }
-                target.disabled = false;
+                target.style.pointerEvents = 'auto';
             }
         }
     });

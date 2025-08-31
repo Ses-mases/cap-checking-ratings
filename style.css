@@ -89,12 +89,52 @@ input[type="email"], input[type="password"], input[type="text"], input[type="num
     transition: var(--transition-main);
     width: 100%;
     box-sizing: border-box;
+    /* ДОБАВЛЕНО */
+    resize: none; /* Убираем растягивание для всех полей по умолчанию */
 }
 input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     background-color: var(--bg-color);
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* --- Новые стили для иконочных кнопок --- */
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: var(--transition-main);
+    color: var(--text-color-secondary);
+    background-color: transparent;
+    border: 1px solid transparent;
+}
+.icon-button:hover {
+    background-color: var(--subtle-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+.icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+.delete-btn:hover {
+    color: var(--error-color);
+}
+
+/* Изменим направление кнопок в профиле, чтобы они были в ряд */
+.review-item-controls {
+    flex-direction: row; /* Было column */
+    gap: 0.75rem;
+    align-items: center;
+}
+/* Уберем старый стиль для текстовых кнопок */
+.review-item-controls .button-secondary {
+    display: none;
 }
 
 /* --- VVV ОБНОВЛЕННЫЕ СТИЛИ ПОИСКА VVV --- */
@@ -192,6 +232,7 @@ div.search-result-item { cursor: default; } /* Для некликабельны
 .modal form { display: flex; flex-direction: column; gap: 1rem; }
 .modal form label { margin-bottom: -0.5rem; font-weight: 500; color: var(--text-color-secondary); }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+.modal textarea { resize: vertical; min-height: 80px; }
 
 /* --- Аккордеон (Профиль) --- */
 .accordion-item { border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; }
@@ -311,7 +352,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 .criterion-label > span { font-size: 0.9em; font-weight: 400; color: var(--text-color-secondary); background-color: var(--subtle-bg); padding: 3px 8px; border-radius: 5px; }
 .criterion-label > span > span { color: var(--text-color); font-weight: bold; }
 .final-score-container { font-size: 1.3em; text-align: center; margin: 1.5rem 0; padding: 1.25rem; background-color: var(--subtle-bg); border: 1px solid var(--border-color); border-radius: var(--radius-sm); transition: background-color 0.3s ease; }
-.final-score-container strong { font-size: 1.5em; margin: 0 0.5rem; vertical-align: middle; }
+.final-score-container strong { font-size: 1.5em; margin: 0 0.5rem; vertical-align: middle; display: inline-block; min-width: 70px; text-align: center; }
 
 /* --- УТИЛИТЫ --- */
 .hidden { display: none; }
@@ -454,4 +495,80 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
      .card img {
         height: 200px;
     }
+}
+
+/* --- Стили для тултипов (подсказок) --- */
+.tooltip-container {
+    position: relative;
+    display: inline-flex;
+    margin-left: 8px; /* Небольшой отступ от текста лейбла */
+}
+.tooltip-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    color: var(--text-color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none; /* Запретить выделение текста знака вопроса */
+}
+.tooltip-text {
+    position: absolute;
+    bottom: 120%; /* Позиционируем над иконкой */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    background-color: var(--text-color);
+    color: white;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+    font-weight: 400;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    box-shadow: var(--shadow-md);
+}
+.tooltip-text::after { /* Стрелочка у тултипа */
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--text-color) transparent transparent transparent;
+}
+
+.criterion-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Добавляем небольшой отступ между названием и вопросом */
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-flex;
+    /* Убираем отсюда margin-left, так как теперь есть gap */
+}
+
+/* Показываем тултип на ПК при наведении */
+@media (hover: hover) {
+    .tooltip-container:hover .tooltip-text {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* Показываем тултип на мобильных устройствах при добавлении класса is-visible */
+.tooltip-text.is-visible {
+    opacity: 1;
+    visibility: visible;
 }

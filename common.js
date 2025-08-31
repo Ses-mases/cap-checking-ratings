@@ -3,6 +3,40 @@ const SUPABASE_URL = 'https://texytgcdtafeejqxftqj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleHl0Z2NkdGFmZWVqcXhmdHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTM2MjUsImV4cCI6MjA3MjEyOTYyNX0.1hWMcDYm4JdWjDKTvS_7uBatorByAK6RtN9LYljpacc';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
+// VVV --- НОВАЯ ФУНКЦИЯ ОПТИМИЗАЦИИ ИЗОБРАЖЕНИЙ --- VVV
+function getTransformedImageUrl(url, options) {
+    if (!url || !url.startsWith(SUPABASE_URL)) {
+        return url;
+    }
+
+    try {
+        const urlObject = new URL(url);
+        const pathSegments = urlObject.pathname.split('/');
+        
+        // Находим 'public' и берем следующие сегменты
+        const publicIndex = pathSegments.indexOf('public');
+        if (publicIndex === -1 || publicIndex + 1 >= pathSegments.length) {
+            return url; // Неожиданный формат URL
+        }
+
+        const bucketName = pathSegments[publicIndex + 1];
+        const filePath = pathSegments.slice(publicIndex + 2).join('/');
+
+        // Используем встроенный метод .getPublicUrl() с опцией transform
+        const { data } = supabaseClient
+            .storage
+            .from(bucketName)
+            .getPublicUrl(filePath, { transform: options });
+
+        return data.publicUrl;
+
+    } catch (error) {
+        console.error('Ошибка при трансформации URL изображения:', error);
+        return url; // В случае ошибки возвращаем оригинальный URL
+    }
+}
+
 // --- 2. НОВЫЕ ОБЩИЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 // ИЗМЕНЕНИЕ: Эти функции были дублированы в album.js и track.js. Теперь они в одном месте.
 function getScoreColor(score, maxScore = 30) {
@@ -14,9 +48,11 @@ function getScoreColor(score, maxScore = 30) {
 function createCommentElement(profile, score, text, scoreMax = 30) {
     const element = document.createElement('div');
     element.className = 'review-item';
-    const avatarUrl = profile?.avatar_url || 'https://via.placeholder.com/48';
+    
+    const avatarUrl = getTransformedImageUrl(profile?.avatar_url, { width: 96, height: 96, resize: 'cover' }) || 'https://via.placeholder.com/48';
+    
     const username = profile?.username || 'Аноним';
-    // ИЗМЕНЕНИЕ: Убрано лишнее преобразование в float, score уже число.
+
     const scoreFormatted = Number(score).toFixed(2);
     const reviewText = text || 'Пользователь не оставил рецензию.';
 

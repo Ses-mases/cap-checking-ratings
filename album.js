@@ -56,7 +56,8 @@ async function loadAlbumData(albumId) {
     document.title = `${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
     albumArtist.textContent = data.artists.name;
-    albumCover.src = data.cover_art_url || 'https://via.placeholder.com/250';
+    // ИЗМЕНЕНИЕ: Оптимизируем главную обложку
+    albumCover.src = getTransformedImageUrl(data.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
     if (data.extra_info && data.extra_info.trim() !== '') {
         extraInfoP.textContent = data.extra_info;
         extraInfoSection.classList.remove('hidden');
@@ -160,6 +161,33 @@ function initializeRatingModal() {
     });
 
     albumRatingForm.addEventListener('submit', handleRatingSubmit);
+
+    const tooltipIcons = document.querySelectorAll('.tooltip-icon');
+    tooltipIcons.forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            // Предотвращаем всплытие события, чтобы не закрыть модальное окно
+            e.stopPropagation(); 
+            
+            const tooltipText = icon.nextElementSibling;
+            
+            // Закрываем все другие открытые тултипы
+            document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
+                if (visibleTooltip !== tooltipText) {
+                    visibleTooltip.classList.remove('is-visible');
+                }
+            });
+            
+            // Переключаем видимость текущего тултипа
+            tooltipText.classList.toggle('is-visible');
+        });
+    });
+
+    // Добавим закрытие тултипов при клике в любом месте модального окна
+    albumRatingForm.addEventListener('click', () => {
+        document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
+            visibleTooltip.classList.remove('is-visible');
+        });
+    });
 }
 
 function calculateFinalScore() {
