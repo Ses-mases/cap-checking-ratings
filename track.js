@@ -80,11 +80,12 @@ async function loadTrackData(trackId) {
     }
 
     const allRatings = data.ratings || [];
+    
+    // ИЗМЕНЕНИЕ: Добавляем расчет и отображение средней оценки
     if (allRatings.length > 0) {
-        allRatings.forEach(review => {
-            const reviewEl = createCommentElement(review.profiles, review.score, review.review_text);
-            reviewsList.appendChild(reviewEl);
-        });
+        const averageScore = allRatings.reduce((sum, rating) => sum + rating.score, 0) / allRatings.length;
+        averageRatingEl.textContent = averageScore.toFixed(2);
+        averageRatingEl.style.color = getScoreColor(averageScore);
     } else {
         averageRatingEl.textContent = '-.--';
         averageRatingEl.style.color = getScoreColor(null);
@@ -92,6 +93,12 @@ async function loadTrackData(trackId) {
 
     reviewsList.innerHTML = '';
     if (allRatings.length > 0) {
+        // Сортируем оценки, чтобы своя была сверху (опционально, но удобно)
+        allRatings.sort((a, b) => {
+            if (a.user_id === currentUser.id) return -1;
+            if (b.user_id === currentUser.id) return 1;
+            return 0;
+        });
         allRatings.forEach(review => {
             const reviewEl = createCommentElement(review.profiles, review.score, review.review_text);
             reviewsList.appendChild(reviewEl);
