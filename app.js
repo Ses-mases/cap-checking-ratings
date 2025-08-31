@@ -19,12 +19,16 @@ async function loadRecentReleases() {
 
         const { data: singles, error: singlesError } = await supabaseClient
             .from('tracks')
-            .select('id, title, cover_art_url, artists(name), albums(cover_art_url)') // ИЗМЕНЕНИЕ: Добавили cover_art_url для трека
+            .select('id, title, cover_art_url, artists(name), albums(cover_art_url)') // Ваш запрос
             .is('album_id', null)
             .order('id', { ascending: false })
-            .limit(10); // Можно увеличить лимит для прокрутки
+            .limit(10); 
         if (singlesError) throw singlesError;
-
+        
+        // --- ДОБАВЬТЕ ЭТУ СТРОКУ ДЛЯ ПРОВЕРКИ ---
+        console.log('Полученные данные о синглах:', singles); 
+        // -----------------------------------------
+        
         const mappedAlbums = albums.map(item => ({
             id: item.id,
             title: item.title,
@@ -90,4 +94,5 @@ async function checkAuthAndLoadContent() {
 // --- ИНИЦИАЛИЗАЦИЯ ---
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthAndLoadContent();
+
 });
