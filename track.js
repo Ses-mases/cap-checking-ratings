@@ -62,13 +62,14 @@ async function loadTrackData(trackId) {
     trackTitle.textContent = data.title;
     trackArtist.textContent = data.artists?.name || 'Неизвестный артист';
 
+    // ИЗМЕНЕНИЕ: Новая логика выбора обложки
+    // Приоритет: Собственная обложка трека -> Обложка альбома -> Плейсхолдер
+    const finalCoverUrl = data.cover_art_url || data.albums?.cover_art_url;
+    trackCover.src = getTransformedImageUrl(finalCoverUrl, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
+
     if (data.albums) {
-        // ИЗМЕНЕНИЕ: Оптимизируем главную обложку
-        trackCover.src = getTransformedImageUrl(data.albums.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
         albumLinkP.innerHTML = `Альбом: <a href="album.html?id=${data.albums.id}">${data.albums.title}</a>`;
         albumLinkP.classList.remove('hidden');
-    } else {
-        trackCover.src = 'https://via.placeholder.com/250'; 
     }
 
     if (data.extra_info && data.extra_info.trim() !== '') {

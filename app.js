@@ -19,7 +19,7 @@ async function loadRecentReleases() {
 
         const { data: singles, error: singlesError } = await supabaseClient
             .from('tracks')
-            .select('id, title, artists(name), albums(cover_art_url)') 
+            .select('id, title, cover_art_url, artists(name), albums(cover_art_url)') // ИЗМЕНЕНИЕ: Добавили cover_art_url для трека
             .is('album_id', null)
             .order('id', { ascending: false })
             .limit(10); // Можно увеличить лимит для прокрутки
@@ -29,7 +29,6 @@ async function loadRecentReleases() {
             id: item.id,
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
-            // ИЗМЕНЕНИЕ: Оптимизируем обложку
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `album.html?id=${item.id}`
         }));
@@ -38,8 +37,8 @@ async function loadRecentReleases() {
             id: item.id,
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
-            // ИЗМЕНЕНИЕ: Оптимизируем обложку
-            coverUrl: getTransformedImageUrl(item.albums?.cover_art_url, { width: 500, height: 500, resize: 'cover' }), 
+            // ИЗМЕНЕНИЕ: Используем собственную обложку сингла
+            coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }), 
             link: `track.html?id=${item.id}`
         }));
 

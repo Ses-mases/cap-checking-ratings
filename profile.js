@@ -192,7 +192,7 @@ function initializeTrackRatings(user) {
     async function fetchAndRender() {
         const { data, error } = await supabaseClient
             .from('ratings')
-            .select(`id, score, review_text, tracks(id, title, albums(cover_art_url))`)
+            .select(`id, score, review_text, tracks(id, title, cover_art_url, albums(cover_art_url))`) // ИЗМЕНЕНИЕ: Добавили cover_art_url
             .eq('user_id', user.id)
             .order('id', { ascending: false }); // Сортируем по последним
 
@@ -212,7 +212,9 @@ function initializeTrackRatings(user) {
                 const reviewText = rating.review_text || '';
                 const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
                 
-                const coverUrl = getTransformedImageUrl(rating.tracks.albums?.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
+                // ИЗМЕНЕНИЕ: Логика выбора обложки
+                const finalCoverUrl = rating.tracks.cover_art_url || rating.tracks.albums?.cover_art_url;
+                const coverUrl = getTransformedImageUrl(finalCoverUrl, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
 
                 item.innerHTML = `
                     <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
