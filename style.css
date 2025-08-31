@@ -316,3 +316,142 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 /* --- УТИЛИТЫ --- */
 .hidden { display: none; }
 .status-message { min-height: 1.2em; margin-top: 1rem; transition: color 0.3s ease; }
+
+
+/*
+==============================================
+--- VVV АДАПТИВНЫЙ ДИЗАЙН (MOBILE-FIRST) VVV ---
+==============================================
+*/
+
+/* Стили для мобильных устройств (ширина до 800px) */
+@media (max-width: 800px) {
+
+    /* --- ОБЩАЯ РАЗМЕТКА --- */
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    #search-container {
+        width: 100%;
+        order: 3; /* Переместить поиск вниз в шапке */
+    }
+    header h1 { order: 1; }
+    nav { order: 2; }
+    main {
+        padding: 1.5rem 1rem; /* Уменьшить отступы */
+        margin-top: 1rem;
+    }
+
+    /* --- ТИПОГРАФИКА --- */
+    h2 { font-size: 1.6em; }
+    .release-info h2 { font-size: 1.8em; }
+    .profile-info h2 { font-size: 1.7em; }
+    .login-container h2 { font-size: 1.4em; }
+
+    /* --- СТРАНИЦА АВТОРИЗАЦИИ --- */
+    .login-main {
+        padding: 1rem;
+        justify-content: flex-start;
+        margin-top: 3rem;
+    }
+    .login-container {
+        padding: 2rem 1.5rem;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    /* --- СТРАНИЦА ПРОФИЛЯ --- */
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    .profile-card {
+        padding: 1.5rem;
+    }
+    .profile-controls {
+        justify-content: center;
+    }
+    #username-input {
+        font-size: 1.7em;
+        text-align: center;
+    }
+
+    /* --- СТРАНИЦЫ РЕЛИЗОВ (АЛЬБОМ/ТРЕК) --- */
+    .release-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    .release-cover {
+        width: 100%;
+        max-width: 280px;
+        height: auto; /* Сохранять пропорции */
+    }
+    .ratings-summary {
+        justify-content: center;
+    }
+    
+    /* --- СПИСКИ РЕЦЕНЗИЙ --- */
+    .review-item {
+        /* Обложка/аватар остаются слева, но основной контент перестраивается */
+        gap: 1rem;
+    }
+    .review-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    .review-item-controls {
+        flex-direction: row;
+        width: 100%;
+        margin-top: 0.5rem;
+        align-self: center; /* Центрировать кнопки под текстом */
+    }
+    .review-item-controls > * {
+        flex: 1; /* Кнопки занимают равное пространство */
+        text-align: center;
+    }
+    
+    /* --- ФОРМА ОЦЕНКИ ТРЕКА --- */
+    .form-row {
+        flex-direction: column;
+    }
+    .rating-input-container {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+     .rating-input-container input {
+        width: 120px;
+    }
+
+    /* --- МОДАЛЬНОЕ ОКНО ОЦЕНКИ АЛЬБОМА --- */
+    .rating-grid {
+        grid-template-columns: 1fr; /* Одна колонка вместо двух */
+        gap: 1rem;
+    }
+    .modal {
+        padding: 1.5rem;
+    }
+    .modal-buttons {
+        flex-direction: column;
+    }
+    .modal-buttons > * {
+        width: 100%;
+    }
+    
+    /* --- КАРТОЧКИ НА ГЛАВНОЙ --- */
+    .card-link {
+        flex: 0 0 200px; /* Сделать карточки немного меньше */
+    }
+     .card img {
+        height: 200px;
+    }
+}
