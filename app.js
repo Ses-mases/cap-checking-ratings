@@ -2,6 +2,113 @@
 const recentTracksContainer = document.getElementById('recent-tracks-container');
 const profileLink = document.getElementById('profile-link');
 
+// VVV --- НАЧАЛО: ЭЛЕМЕНТЫ DOM ДЛЯ ОКНА АНОНСА --- VVV
+const announcementOverlay = document.getElementById('announcement-modal-overlay');
+const closeAnnouncementBtn = document.getElementById('close-announcement-btn');
+const announcementBody = document.getElementById('announcement-body');
+const announcementTitle = document.getElementById('announcement-title');
+const announcementDescription = document.getElementById('announcement-description');
+const announcementDate = document.getElementById('announcement-date');
+const waitButton = document.getElementById('wait-button');
+let currentAnnouncementId = null; // Переменная для хранения ID текущего анонса
+// ^^^ --- КОНЕЦ: ЭЛЕМЕНТЫ DOM ДЛЯ ОКНА АНОНСА --- ^^^
+
+
+// VVV --- НАЧАЛО: ЛОГИКА ОТОБРАЖЕНИЯ АНОНСА --- VVV
+async function handleAnnouncements() {
+    const lastShown = localStorage.getItem('announcementLastShown');
+    const now = new Date().getTime();
+    const oneDay = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
+
+    if (lastShown && (now - lastShown < oneDay)) {
+        console.log('Анонс уже был показан сегодня.');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('announcements')
+            .select('*')
+            .order('id', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error) {
+            if (error.code !== 'PGRST116') {
+                 console.error('Ошибка загрузки анонса:', error);
+            }
+            return;
+        }
+
+        if (data) {
+            currentAnnouncementId = data.id; // Сохраняем ID анонса
+
+            announcementTitle.textContent = data.title;
+            announcementDescription.textContent = data.description;
+            // Устанавливаем картинку как фон для элемента
+            announcementBody.style.backgroundImage = `url(${data.image_url || 'https://via.placeholder.com/450x600'})`;
+            announcementDate.textContent = new Date(data.release_date).toLocaleDateString('ru-RU', {
+                day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            // Проверяем, нажимал ли пользователь уже кнопку для этого анонса
+            const hasWaited = localStorage.getItem(`announcement_waited_${currentAnnouncementId}`);
+            if (hasWaited) {
+                waitButton.disabled = true;
+                waitButton.textContent = "ВЫ ЖДЕТЕ!";
+            } else {
+                waitButton.disabled = false;
+                waitButton.textContent = "ЖДУ!";
+            }
+
+            announcementOverlay.classList.add('is-visible');
+            localStorage.setItem('announcementLastShown', now);
+        }
+
+    } catch (e) {
+        console.error('Не удалось обработать анонс:', e);
+    }
+}
+
+function closeAnnouncementModal() {
+    announcementOverlay.classList.remove('is-visible');
+}
+
+async function handleWaitButtonClick() {
+    if (!currentAnnouncementId || waitButton.disabled) return;
+
+    waitButton.disabled = true; // Блокируем кнопку сразу
+
+    // Вызываем нашу SQL функцию для увеличения счетчика
+    const { error } = await supabaseClient.rpc('increment_wait_count', {
+        announcement_id: currentAnnouncementId
+    });
+
+    if (error) {
+        console.error("Ошибка при увеличении счетчика:", error);
+        waitButton.disabled = false; // Разблокируем, если была ошибка
+    } else {
+        // Запоминаем, что пользователь нажал кнопку для этого анонса
+        localStorage.setItem(`announcement_waited_${currentAnnouncementId}`, 'true');
+        console.log('Счетчик для анонса', currentAnnouncementId, 'успешно увеличен.');
+        // Закрываем окно после успешного нажатия
+        setTimeout(closeAnnouncementModal, 300); // Небольшая задержка для наглядности
+    }
+}
+
+
+if (announcementOverlay && closeAnnouncementBtn && waitButton) {
+    closeAnnouncementBtn.addEventListener('click', closeAnnouncementModal);
+    waitButton.addEventListener('click', handleWaitButtonClick);
+    announcementOverlay.addEventListener('click', (e) => {
+        if (e.target === announcementOverlay) {
+            closeAnnouncementModal();
+        }
+    });
+}
+// ^^^ --- КОНЕЦ: ЛОГИКА ОТОБРАЖЕНИЯ АНОНСА --- ^^^
+
+
 // --- ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ ---
 
 // Новая функция для загрузки последних релизов (альбомов и синглов)
@@ -105,6 +212,7 @@ async function checkAuthAndLoadContent() {
              profileLink.style.display = 'inline';
         }
         loadRecentReleases();
+        handleAnnouncements(); // <--- ВЫЗЫВАЕМ ФУНКЦИЮ ПРОВЕРКИ АНОНСА
     }
 }
 

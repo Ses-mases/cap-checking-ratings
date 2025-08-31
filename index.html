@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Cap Checking Ratings</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,22 @@
                 <!-- Карточки будут загружены сюда -->
             </div>
         </section>
+
+        <!-- VVV НАЧАЛО: ОБНОВЛЕННЫЙ ШАБЛОН ОКНА АНОНСА VVV -->
+        <div id="announcement-modal-overlay" class="modal-overlay">
+            <div id="announcement-modal" class="modal">
+                <button id="close-announcement-btn" class="close-modal-btn">&times;</button>
+                <div id="announcement-body">
+                     <div class="announcement-overlay-content">
+                        <p id="announcement-date"></p>
+                        <h2 id="announcement-title"></h2>
+                        <p id="announcement-description"></p>
+                        <button id="wait-button" class="button-primary">ЖДУ!</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ^^^ КОНЕЦ: ОБНОВЛЕННЫЙ ШАБЛОН ОКНА АНОНСА ^^^ -->
     </main>
 
     <footer>
