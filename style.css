@@ -1,0 +1,318 @@
+/* --- ГЛОБАЛЬНЫЕ СТИЛИ И ПЕРЕМЕННЫЕ --- */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #1a1a1a;
+    --text-color-secondary: #6c757d;
+    --primary-color: #007bff;
+    --primary-color-dark: #0056b3;
+    --border-color: #e9ecef;
+    --card-bg: #ffffff;
+    --subtle-bg: #f8f9fa;
+    --error-color: #dc3545;
+    --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+    --shadow-md: 0 8px 16px rgba(0,0,0,0.07);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 50%;
+    --radius-pill: 25px;
+    --transition-main: all 0.2s ease;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 700;
+}
+h2 { font-size: 1.8em; margin-bottom: 1.5rem; }
+h3 { font-size: 1.2em; font-weight: 500; }
+a { color: var(--primary-color); text-decoration: none; }
+a:hover { color: var(--primary-color-dark); }
+p { margin: 0; }
+
+/* --- ОСНОВНАЯ РАЗМЕТКА --- */
+header, footer {
+    border-color: var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color-secondary);
+}
+header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid;
+}
+header h1 { margin: 0; font-size: 1.5em; }
+footer { text-align: center; padding: 2rem 1rem; border-top: 1px solid; margin-top: 3rem; }
+
+main { max-width: 1400px; margin: 2rem auto; padding: 1rem 2rem; }
+section { margin-bottom: 3rem; }
+nav { display: flex; gap: 1.5rem; }
+nav a { color: var(--text-color-secondary); font-weight: 500; transition: var(--transition-main); }
+
+/* --- КОМПОНЕНТЫ --- */
+
+/* --- Кнопки --- */
+.button-primary, .button-secondary {
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9em;
+    transition: var(--transition-main);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.button-primary { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+.button-primary:hover { background-color: var(--primary-color-dark); border-color: var(--primary-color-dark); }
+.button-secondary { background-color: transparent; color: var(--text-color-secondary); border-color: var(--border-color); }
+.button-secondary:hover { background-color: var(--subtle-bg); color: var(--text-color); border-color: #dee2e6; }
+
+/* --- Формы и поля ввода --- */
+input[type="email"], input[type="password"], input[type="text"], input[type="number"], textarea {
+    padding: 12px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    background-color: var(--subtle-bg);
+    transition: var(--transition-main);
+    width: 100%;
+    box-sizing: border-box;
+}
+input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: var(--bg-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* --- VVV ОБНОВЛЕННЫЕ СТИЛИ ПОИСКА VVV --- */
+#search-container { position: relative; width: 300px; }
+.search-wrapper { position: relative; }
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--text-color-secondary);
+    pointer-events: none; /* Чтобы можно было кликнуть "сквозь" иконку */
+}
+#search-input {
+    background-color: var(--subtle-bg);
+    border-radius: var(--radius-pill);
+    padding-left: 45px; /* Место для иконки */
+    border: 1px solid transparent;
+}
+#search-input:focus {
+    border: 1px solid var(--primary-color);
+}
+#search-results-container {
+    display: none; position: absolute; top: 110%; left: 0; right: 0;
+    background-color: white; border: 1px solid var(--border-color);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    z-index: 1000; max-height: 400px; overflow-y: auto; padding: 0.5rem;
+}
+.search-category-title {
+    padding: 0.75rem 1rem;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-color-secondary);
+    background-color: var(--subtle-bg);
+    margin: 0.5rem -0.5rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+.search-category-title:first-child {
+    margin-top: -0.5rem;
+    border-top: none;
+}
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-color);
+    text-decoration: none;
+    cursor: pointer;
+}
+a.search-result-item:hover {
+    background-color: var(--subtle-bg);
+    color: var(--primary-color);
+}
+div.search-result-item { cursor: default; } /* Для некликабельных артистов */
+.search-item-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--text-color-secondary);
+}
+.search-item-info { display: flex; flex-direction: column; overflow: hidden; }
+.search-item-title { font-weight: 500; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.search-item-artist { font-size: 0.9em; color: var(--text-color-secondary); }
+.search-no-results { padding: 1rem; text-align: center; color: var(--text-color-secondary); }
+/* ^^^ КОНЕЦ СТИЛЕЙ ПОИСКА ^^^ */
+
+/* --- Карточки (Главная страница) --- */
+.horizontal-scroll-container { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; -ms-overflow-style: none; }
+.horizontal-scroll-container::-webkit-scrollbar { display: none; }
+.card-link { text-decoration: none; color: inherit; display: block; flex: 0 0 250px; }
+.card { border: none; border-radius: var(--radius-md); background-color: var(--card-bg); overflow: hidden; transition: var(--transition-main); }
+.card-link:hover .card { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+.card img { width: 100%; height: 250px; object-fit: cover; display: block; }
+.card h3 { margin: 1rem 1rem 0.25rem 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card p { margin: 0 1rem 1rem 1rem; color: var(--text-color-secondary); font-size: 0.9em; }
+
+/* --- Модальные окна --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none; justify-content: center; align-items: center; z-index: 2000;
+}
+.modal-overlay.is-visible { display: flex; }
+.modal {
+    background-color: white; padding: 2rem; border-radius: var(--radius-md);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 450px;
+}
+.modal.large-modal { max-width: 700px; }
+.modal form { display: flex; flex-direction: column; gap: 1rem; }
+.modal form label { margin-bottom: -0.5rem; font-weight: 500; color: var(--text-color-secondary); }
+.modal-buttons { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+
+/* --- Аккордеон (Профиль) --- */
+.accordion-item { border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; }
+.accordion-item summary { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; cursor: pointer; list-style: none; background-color: #fdfdfd; }
+.accordion-item summary:hover { background-color: var(--subtle-bg); }
+.accordion-item summary h3 { margin: 0; }
+.accordion-item summary::-webkit-details-marker { display: none; }
+.accordion-icon { width: 20px; height: 20px; transition: transform 0.3s ease; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-size: contain; }
+.accordion-item[open] > summary .accordion-icon { transform: rotate(180deg); }
+.accordion-content { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
+
+/* --- Общие стили для списков рецензий (в профиле, треках, альбомах) --- */
+.review-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.review-item:last-of-type { border-bottom: none; padding-bottom: 0; }
+.review-item:first-of-type { padding-top: 0.5rem; }
+.accordion-content .review-item { padding: 1rem 0; }
+.accordion-content .review-item:first-of-type { padding-top: 0; }
+.review-item-cover { width: 60px; height: 60px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; }
+.review-item-avatar { width: 48px; height: 48px; border-radius: var(--radius-full); object-fit: cover; flex-shrink: 0; margin-top: 5px; }
+.review-item-body { flex-grow: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+.review-item-header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.review-item-title { font-weight: 700; font-size: 1.1em; color: var(--text-color); }
+.review-item-author { font-weight: 700; font-size: 1.1em; }
+.review-item-score { font-size: 1em; color: var(--text-color-secondary); white-space: nowrap; }
+.review-item-score strong { font-size: 1.1em; }
+.review-item-text { margin: 0; line-height: 1.6; color: var(--text-color); }
+.accordion-content .review-item-text { font-style: italic; color: var(--text-color-secondary); padding-left: 1rem; border-left: 3px solid var(--border-color); font-size: 0.95em; }
+.review-item-controls { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+.review-item-controls .button-secondary { padding: 5px 12px; font-size: 0.8em; min-width: 80px; }
+
+/* --- СПЕЦИФИЧНЫЕ СТИЛИ ДЛЯ СТРАНИЦ --- */
+/* --- Страница авторизации --- */
+.login-main {
+    flex-grow: 1; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; padding: 2rem;
+    min-height: calc(100vh - 200px);
+}
+.login-container {
+    width: 100%; max-width: 400px; padding: 2.5rem;
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center;
+}
+.login-container h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 2rem; }
+.login-container form { display: flex; flex-direction: column; gap: 1rem; }
+.login-container .button-primary { margin-top: 0.5rem; padding: 12px; font-size: 1em; }
+#error-message { margin-top: 1rem; color: var(--error-color); font-weight: 500; min-height: 1.2em; }
+
+/* --- Страница профиля --- */
+.profile-main { max-width: 900px; }
+.profile-card { background-color: var(--card-bg); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 2rem; }
+.profile-header { display: flex; align-items: center; gap: 1.5rem; }
+.avatar { width: 120px; height: 120px; border-radius: var(--radius-full); object-fit: cover; border: 4px solid white; box-shadow: var(--shadow-sm); }
+.profile-info h2 { margin: 0 0 0.5rem 0; font-size: 2em; }
+/* Редактирование профиля */
+.profile-card .edit-mode-element, #avatar-input.hidden { display: none; }
+.profile-card.is-editing .display-mode-element { display: none; }
+.profile-card.is-editing .edit-mode-element { display: inline-block; }
+.profile-card.is-editing .profile-controls .edit-mode-element { display: inline-flex; }
+#avatar-container { position: relative; display: inline-block; }
+.edit-avatar-btn {
+    position: absolute; bottom: 5px; right: 5px; width: 32px; height: 32px;
+    background-color: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-color);
+    border-radius: var(--radius-full); display: none; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition-main);
+}
+.edit-avatar-btn:hover { background-color: white; }
+.edit-avatar-btn svg { width: 18px; height: 18px; color: var(--text-color); }
+.profile-card.is-editing #edit-avatar-button { display: flex; }
+#username-input { font-size: 2em; font-weight: 700; font-family: inherit; border: none; border-bottom: 2px solid var(--border-color); padding: 0 0 5px 0; background: transparent; outline: none; color: var(--text-color); width: 100%; }
+#username-input:focus { border-bottom-color: var(--primary-color); }
+.profile-controls { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+.status-message { min-height: 1.2em; margin-top: 1rem; transition: color 0.3s ease; }
+
+/* --- Страницы релиза (трек/альбом) --- */
+.release-content { max-width: 900px; margin: auto; }
+.release-header { display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 2rem; }
+.release-cover { width: 250px; height: 250px; object-fit: cover; border-radius: var(--radius-md); box-shadow: var(--shadow-md); flex-shrink: 0; }
+.release-info h2 { margin: 0 0 0.5rem 0; font-size: 2.5em; }
+.release-info h3 { margin: 0 0 1.5rem 0; font-size: 1.5em; font-weight: 400; color: var(--text-color-secondary); }
+.ratings-summary { display: flex; gap: 2rem; margin-bottom: 1.5rem; }
+.rating-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.rating-value { font-size: 2.5em; font-weight: 700; line-height: 1.1; }
+.rating-label { font-size: 0.9em; color: var(--text-color-secondary); }
+.release-extra-info { background-color: var(--subtle-bg); padding: 1rem 1.5rem; border-radius: var(--radius-sm); margin-bottom: 2rem; }
+.track-list-container { border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
+.track-list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); text-decoration: none; color: var(--text-color); transition: background-color 0.2s ease; }
+.track-list-item:last-child { border-bottom: none; }
+.track-list-item:hover { background-color: var(--subtle-bg); }
+.track-title { font-weight: 500; }
+.track-avg-score { font-weight: 700; font-size: 1.1em; }
+
+/* --- Форма оценки на странице релиза --- */
+.user-rating-form { background-color: var(--subtle-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; }
+.user-rating-form h4 { margin: 0 0 1rem 0; }
+.form-row { display: flex; gap: 1rem; align-items: flex-start; }
+.user-rating-form textarea { flex-grow: 1; min-height: 80px; resize: vertical; }
+.rating-input-container input { width: 100px; text-align: center; font-size: 1.2em; font-weight: 700; background-color: white; }
+.form-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+.form-actions button { background-color: var(--primary-color); color: white; border: none; }
+
+/* --- Текст трека --- */
+.track-lyrics-container { background-color: var(--subtle-bg); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 2rem; }
+.track-lyrics-container pre { margin: 0; white-space: pre-wrap; line-height: 1.6; }
+
+/* --- Ползунки (range input) в модальных окнах --- */
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; outline: none; margin-top: 0.5rem; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--primary-color); border-radius: var(--radius-full); cursor: pointer; transition: transform 0.2s ease; }
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: var(--primary-color); border-radius: var(--radius-full); cursor: pointer; }
+.rating-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 2rem; margin-bottom: 1rem; }
+.criterion-label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 500; }
+.criterion-label > span { font-size: 0.9em; font-weight: 400; color: var(--text-color-secondary); background-color: var(--subtle-bg); padding: 3px 8px; border-radius: 5px; }
+.criterion-label > span > span { color: var(--text-color); font-weight: bold; }
+.final-score-container { font-size: 1.3em; text-align: center; margin: 1.5rem 0; padding: 1.25rem; background-color: var(--subtle-bg); border: 1px solid var(--border-color); border-radius: var(--radius-sm); transition: background-color 0.3s ease; }
+.final-score-container strong { font-size: 1.5em; margin: 0 0.5rem; vertical-align: middle; }
+
+/* --- УТИЛИТЫ --- */
+.hidden { display: none; }
+.status-message { min-height: 1.2em; margin-top: 1rem; transition: color 0.3s ease; }
