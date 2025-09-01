@@ -42,9 +42,9 @@ async function loadAlbumData(albumId) {
         .from('albums')
         .select(`
             *,
-            artists ( name ),
-            tracks ( id, title, ratings ( score ) ),
-            album_ratings ( *, profiles(username, avatar_url) )
+            album_artists ( is_main_artist, artists ( id, name ) ),
+            album_ratings ( *, profiles(username, avatar_url) ),
+            tracks ( id, title, ratings ( score ), track_artists(is_main_artist, artists(name)) )
         `)
         .eq('id', albumId)
         .single();
@@ -56,7 +56,16 @@ async function loadAlbumData(albumId) {
     }
     document.title = `${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
-    albumArtist.textContent = data.artists.name;
+    
+    if (data.album_artists && data.album_artists.length > 0) {
+        data.album_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
+        const allArtistsHtml = data.album_artists.map(item => 
+            `<a href="artist.html?id=${item.artists.id}">${item.artists.name}</a>`
+        ).join(', ');
+        albumArtist.innerHTML = allArtistsHtml;
+    } else {
+        albumArtist.textContent = 'Неизвестный артист';
+    }
 
     if (data.release_date) {
         albumReleaseDate.textContent = `Дата релиза: ${new Date(data.release_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
@@ -91,22 +100,37 @@ async function loadAlbumData(albumId) {
         trackRatingEl.style.color = getScoreColor(null);
     }
     trackList.innerHTML = '';
+    
+    // ИЗМЕНЕНО: Добавлена логика форматирования названия трека
     data.tracks.forEach(track => {
         const trackEl = document.createElement('a');
         trackEl.className = 'track-list-item';
         trackEl.href = `track.html?id=${track.id}`;
+
+        let trackTitleWithFeatures = track.title;
+        const artists = track.track_artists || [];
+        if (artists.length > 1) {
+            const featuredArtists = artists
+                .filter(a => !a.is_main_artist)
+                .map(a => a.artists.name);
+            if (featuredArtists.length > 0) {
+                trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
+            }
+        }
+
         let avgScore = null;
         if(track.ratings.length > 0) {
             const sum = track.ratings.reduce((acc, r) => acc + r.score, 0);
             avgScore = sum / track.ratings.length;
         }
         trackEl.innerHTML = `
-            <span class="track-title">${track.title}</span>
+            <span class="track-title">${trackTitleWithFeatures}</span>
             <span class="track-avg-score" style="color: ${getScoreColor(avgScore)}">
                 ${avgScore ? avgScore.toFixed(2) : '-.--'}
             </span>`;
         trackList.appendChild(trackEl);
     });
+    
     commentsList.innerHTML = '';
     if (expertRatings.length > 0) {
         expertRatings.forEach(review => {
@@ -145,7 +169,6 @@ async function loadUserAlbumRating() {
     }
 }
 
-// ЛОГИКА МОДАЛЬНОГО ОКНА
 function initializeRatingModal() {
     rateReleaseButton.addEventListener('click', async () => {
         await loadUserAlbumRating();
@@ -249,7 +272,6 @@ async function handleRatingSubmit(e) {
     }
 }
 
-// ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ
 async function initializePage() {
     currentAlbumId = new URLSearchParams(window.location.search).get('id');
     if (!currentAlbumId) {

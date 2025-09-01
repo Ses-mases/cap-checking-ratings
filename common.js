@@ -80,7 +80,6 @@ if (logoutButton) {
     });
 }
 
-
 // ЛОГИКА ПОИСКА
 const searchInput = document.getElementById('search-input');
 const searchResultsContainer = document.getElementById('search-results-container');
@@ -108,23 +107,40 @@ if (searchInput && searchResultsContainer) {
             return;
         }
 
-        const createItem = (item, type) => {
-            const isArtist = type === 'artist';
+        const getArtistNames = (item) => {
+            if (item.album_artists) return item.album_artists.map(a => a.artists.name).join(', ');
+            if (item.track_artists) return item.track_artists.map(a => a.artists.name).join(', ');
+            return '';
+        };
 
-            const tag = isArtist ? 'div' : 'a'; 
-            const href = isArtist ? '' : `href="${type}.html?id=${item.id}"`;
+        const createItem = (item, type) => {
+            const href = `href="${type}.html?id=${item.id}"`;
             const icon = type === 'artist' ? iconArtist : (type === 'album' ? iconAlbum : iconTrack);
-            const artistName = item.artists ? `<span class="search-item-artist">${item.artists.name}</span>` : '';
-            const title = item.name || item.title;
+            const artistNameText = getArtistNames(item);
+            const artistName = artistNameText ? `<span class="search-item-artist">${artistNameText}</span>` : '';
+
+            // ИЗМЕНЕНО: Логика форматирования названия трека
+            let title = item.name || item.title;
+            if (type === 'track') {
+                const trackArtists = item.track_artists || [];
+                if (trackArtists.length > 1) {
+                    const featured = trackArtists.filter(a => !a.is_main_artist).map(a => a.artists.name);
+                    if (featured.length > 0) {
+                        title += ` (ft. ${featured.join(', ')})`;
+                    }
+                }
+            }
+
+            const fullTitleForTooltip = artistNameText ? `${title} - ${artistNameText}` : title;
 
             return `
-                <${tag} ${href} class="search-result-item" title="${title}${item.artists ? ` - ${item.artists.name}` : ''}">
+                <a ${href} class="search-result-item" title="${fullTitleForTooltip}">
                     <div class="search-item-icon">${icon}</div>
                     <div class="search-item-info">
                         <span class="search-item-title">${title}</span>
                         ${artistName}
                     </div>
-                </${tag}>
+                </a>
             `;
         };
 
@@ -152,10 +168,11 @@ if (searchInput && searchResultsContainer) {
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<div class="search-no-results">Идет поиск...</div>';
         try {
+            // ИЗМЕНЕНО: Запрос треков теперь включает артистов
             const [artistsRes, albumsRes, tracksRes] = await Promise.all([
                 supabaseClient.from('artists').select('id, name').ilike('name', `%${query}%`).limit(3),
-                supabaseClient.from('albums').select('id, title, artists(name)').ilike('title', `%${query}%`).limit(5),
-                supabaseClient.from('tracks').select('id, title, artists(name)').ilike('title', `%${query}%`).limit(5)
+                supabaseClient.from('albums').select('id, title, album_artists(artists(name))').ilike('title', `%${query}%`).limit(5),
+                supabaseClient.from('tracks').select('id, title, track_artists(is_main_artist, artists(name))').ilike('title', `%${query}%`).limit(5)
             ]);
             
             const errors = [artistsRes.error, albumsRes.error, tracksRes.error].filter(Boolean);

@@ -450,12 +450,16 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 #username-input:focus { border-bottom-color: var(--primary-color); box-shadow: none; }
 .profile-controls { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
 
-.release-content { max-width: 900px; margin: auto; }
-.release-content > section { margin-bottom: 3rem; }
-.release-header { display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 3rem; }
+.release-content, #artist-content { max-width: 900px; margin: auto; }
+.release-content > section, #artist-content > section { margin-bottom: 3.5rem; }
+#artist-content > section:last-child { margin-bottom: 0; }
+
+.release-header { display: flex; gap: 2rem; align-items: flex-start; }
 .release-cover { width: 250px; height: 250px; object-fit: cover; border-radius: var(--radius-md); box-shadow: var(--shadow-md); flex-shrink: 0; }
 .release-info h2 { margin: 0 0 0.5rem 0; font-size: 2.5em; }
 .release-info h3 { margin: 0 0 1.5rem 0; font-size: 1.5em; font-weight: 400; color: var(--text-color-secondary); }
+.release-info h3 a { color: inherit; }
+.release-info h3 a:hover { color: var(--primary-color); }
 .release-date {
     font-size: 0.9em;
     color: var(--text-color-secondary);
@@ -469,13 +473,15 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .track-list-container {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    margin-top: 1.5rem;
+    margin-top: 1rem;
 }
 .track-list-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
 .track-list-item:last-child { border-bottom: none; }
 .track-list-item:hover { background-color: var(--subtle-bg); }
 .track-title { font-weight: 500; }
 .track-avg-score { font-weight: 700; font-size: 1.1em; }
+#artist-tracks-section > .button { margin-top: 1.5rem; display: block; margin-left: auto; margin-right: auto; }
+.track-list-item.initially-hidden { display: none; }
 
 .user-rating-form { background-color: var(--subtle-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; }
 .user-rating-form h4 { margin: 0 0 1rem 0; }
@@ -484,6 +490,12 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .rating-input-container input { width: 100px; text-align: center; font-size: 1.2em; font-weight: 700; background-color: white; }
 .form-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
 .track-lyrics-container { background-color: var(--subtle-bg); padding: 1.5rem; border-radius: var(--radius-sm); }
+
+.artist-avatar { border-radius: var(--radius-full); }
+.artist-description { margin-top: 1rem; color: var(--text-color-secondary); line-height: 1.6; }
+#artist-albums-section .scroll-wrapper { margin-top: 1rem; }
+#artist-albums-section .card-link { flex: 0 0 220px; }
+
 
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; outline: none; margin-top: 0.5rem; padding: 0; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--primary-color); border-radius: var(--radius-full); cursor: pointer; transition: transform 0.2s ease; }
@@ -552,4 +564,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     .top-card-cover { width: 80px; height: 80px; }
     .top-card-title { font-size: 1.1em; }
     .top-card-score { font-size: 1.2em; }
+    #artist-albums-section .card-link { flex: 0 0 180px; }
+
 }

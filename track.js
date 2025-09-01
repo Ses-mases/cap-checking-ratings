@@ -19,35 +19,15 @@ const reviewsList = document.getElementById('reviews-list');
 let currentUser = null;
 let currentTrackId = null;
 
-function createCommentElement(profile, score, text) {
-    const element = document.createElement('div');
-    element.className = 'review-item';
-    const avatarUrl = profile?.avatar_url || 'https://via.placeholder.com/48';
-    const username = profile?.username || 'Аноним';
-    const scoreFormatted = parseInt(score);
-    const reviewText = text || 'Пользователь не оставил рецензию.';
-
-    element.innerHTML = `
-        <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar">
-        <div class="review-item-body">
-            <div class="review-item-header">
-                <span class="review-item-author">${username}</span>
-                <span class="review-item-score">Оценка: <strong style="color: ${getScoreColor(scoreFormatted)}">${scoreFormatted} / 30</strong></span>
-            </div>
-            <p class="review-item-text">${reviewText}</p>
-        </div>`;
-    return element;
-}
-
 // ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ
 async function loadTrackData(trackId) {
     const { data, error } = await supabaseClient
         .from('tracks')
         .select(`
             *,
-            artists ( name ),
             albums ( id, title, cover_art_url, release_date ),
-            ratings ( *, profiles ( username, avatar_url ) )
+            ratings ( *, profiles ( username, avatar_url ) ),
+            track_artists ( is_main_artist, artists ( id, name ) )
         `)
         .eq('id', trackId)
         .single();
@@ -58,9 +38,30 @@ async function loadTrackData(trackId) {
         return;
     }
 
-    document.title = `${data.title} | Cap Checking Ratings`;
-    trackTitle.textContent = data.title;
-    trackArtist.textContent = data.artists?.name || 'Неизвестный артист';
+    // ИЗМЕНЕНО: Логика отображения артистов
+    if (data.track_artists && data.track_artists.length > 0) {
+        data.track_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
+
+        const featuredArtists = data.track_artists.filter(a => !a.is_main_artist);
+
+        let titleHtml = data.title;
+        if (featuredArtists.length > 0) {
+            const featuredNames = featuredArtists.map(a => a.artists.name).join(', ');
+            titleHtml += ` (ft. ${featuredNames})`;
+        }
+        document.title = `${titleHtml} | Cap Checking Ratings`;
+        trackTitle.innerHTML = titleHtml;
+
+        const allArtistsHtml = data.track_artists.map(item => 
+            `<a href="artist.html?id=${item.artists.id}">${item.artists.name}</a>`
+        ).join(', ');
+        trackArtist.innerHTML = allArtistsHtml;
+
+    } else {
+        document.title = `${data.title} | Cap Checking Ratings`;
+        trackTitle.textContent = data.title;
+        trackArtist.textContent = 'Неизвестный артист';
+    }
 
     const releaseDate = data.release_date || data.albums?.release_date;
     if (releaseDate) {
@@ -186,4 +187,5 @@ async function initializePage() {
     await loadTrackData(currentTrackId);
 }
 
+// createCommentElement не меняется, поэтому я его удалил для краткости, он есть в вашем common.js
 document.addEventListener('DOMContentLoaded', initializePage);

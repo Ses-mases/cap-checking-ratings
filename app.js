@@ -14,7 +14,7 @@ let currentAnnouncementId = null;
 const topTracksContainer = document.getElementById('top-tracks-container');
 const topAlbumsContainer = document.getElementById('top-albums-container');
 
-// ФУНКЦИЯ ДЛЯ УПРАВЛЕНИЯ СКРОЛЛОМ
+// ... (функции initializeScrollers, handleAnnouncements, closeAnnouncementModal, handleWaitButtonClick остаются без изменений) ...
 function initializeScrollers() {
     document.querySelectorAll('.scroll-wrapper').forEach(wrapper => {
         const scroller = wrapper.querySelector('.horizontal-scroll-container');
@@ -75,19 +75,11 @@ async function handleAnnouncements() {
         }
 
         if (data && data.image_url) {
-            // =================================================================
-            // НАЧАЛО: Код для предзагрузки ключевого изображения
-            // =================================================================
-            // Динамически создаем тег <link> для предзагрузки
             const preloadLink = document.createElement('link');
             preloadLink.rel = 'preload';
             preloadLink.as = 'image';
             preloadLink.href = data.image_url;
-            // Добавляем тег в <head> документа
             document.head.appendChild(preloadLink);
-            // =================================================================
-            // КОНЕЦ: Код для предзагрузки ключевого изображения
-            // =================================================================
             
             currentAnnouncementId = data.id;
 
@@ -139,7 +131,6 @@ async function handleWaitButtonClick() {
     }
 }
 
-
 if (announcementOverlay && closeAnnouncementBtn && waitButton) {
     closeAnnouncementBtn.addEventListener('click', closeAnnouncementModal);
     waitButton.addEventListener('click', handleWaitButtonClick);
@@ -155,36 +146,38 @@ async function loadRecentReleases() {
     recentReleasesContainer.innerHTML = '';
 
     try {
+        // ИЗМЕНЕНО: Запрос артистов для альбомов
         const { data: albums, error: albumsError } = await supabaseClient
             .from('albums')
-            .select('id, title, cover_art_url, artists(name), release_date')
+            .select('id, title, cover_art_url, release_date, album_artists(artists(name))')
             .order('release_date', { ascending: false, nullsLast: true })
             .limit(10);
         if (albumsError) throw albumsError;
 
+        // ИЗМЕНЕНО: Запрос артистов для синглов
         const { data: singles, error: singlesError } = await supabaseClient
             .from('tracks')
-            .select('id, title, cover_art_url, artists(name), albums(cover_art_url), release_date')
+            .select('id, title, cover_art_url, albums(cover_art_url), release_date, track_artists(artists(name))')
             .is('album_id', null)
             .order('release_date', { ascending: false, nullsLast: true })
             .limit(10);
         if (singlesError) throw singlesError;
 
-        console.log('Полученные данные о синглах из Supabase:', singles);
-
+        // ИЗМЕНЕНО: Сборка имен артистов
         const mappedAlbums = albums.map(item => ({
             id: item.id,
             title: item.title,
-            artistName: item.artists?.name || 'Неизвестный артист',
+            artistName: item.album_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `album.html?id=${item.id}`,
             releaseDate: item.release_date
         }));
-
+        
+        // ИЗМЕНЕНО: Сборка имен артистов
         const mappedSingles = singles.map(item => ({
             id: item.id,
             title: item.title,
-            artistName: item.artists?.name || 'Неизвестный артист',
+            artistName: item.track_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `track.html?id=${item.id}`,
             releaseDate: item.release_date
@@ -330,20 +323,34 @@ async function loadTopTracks() {
         }
 
         const top5TrackIds = top5TracksInfo.map(t => t.id);
+        // ИЗМЕНЕНО: Запрос теперь включает артистов
         const { data: tracks, error: tracksError } = await supabaseClient
             .from('tracks')
-            .select('id, title, cover_art_url, artists(name), albums(cover_art_url)')
+            .select('id, title, cover_art_url, albums(cover_art_url), track_artists(is_main_artist, artists(name))')
             .in('id', top5TrackIds);
 
         if (tracksError) throw tracksError;
-
+        
+        // ИЗМЕНЕНО: Добавлена логика форматирования
         const finalData = top5TracksInfo.map(info => {
             const trackData = tracks.find(t => t.id === info.id);
             const finalCoverUrl = trackData.cover_art_url || trackData.albums?.cover_art_url;
+
+            let trackTitleWithFeatures = trackData.title;
+            const artists = trackData.track_artists || [];
+            if (artists.length > 1) {
+                const featuredArtists = artists
+                    .filter(a => !a.is_main_artist)
+                    .map(a => a.artists.name);
+                if (featuredArtists.length > 0) {
+                    trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
+                }
+            }
+            
             return {
                 ...info,
-                title: trackData.title,
-                artistName: trackData.artists?.name || 'Неизвестный артист',
+                title: trackTitleWithFeatures,
+                artistName: artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
                 coverUrl: getTransformedImageUrl(finalCoverUrl, { width: 180, height: 180, resize: 'cover' }),
                 link: `track.html?id=${info.id}`
             };
@@ -408,19 +415,21 @@ async function loadTopAlbums() {
         }
 
         const top5AlbumIds = top5AlbumsInfo.map(a => a.id);
+        // ИЗМЕНЕНО: Запрос артистов для альбомов
         const { data: albums, error: albumsError } = await supabaseClient
             .from('albums')
-            .select('id, title, cover_art_url, artists(name)')
+            .select('id, title, cover_art_url, album_artists(artists(name))')
             .in('id', top5AlbumIds);
 
         if (albumsError) throw albumsError;
         
+        // ИЗМЕНЕНО: Сборка имен артистов
         const finalData = top5AlbumsInfo.map(info => {
             const albumData = albums.find(a => a.id === info.id);
             return {
                 ...info,
                 title: albumData.title,
-                artistName: albumData.artists?.name || 'Неизвестный артист',
+                artistName: albumData.album_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
                 coverUrl: getTransformedImageUrl(albumData.cover_art_url, { width: 180, height: 180, resize: 'cover' }),
                 link: `album.html?id=${info.id}`
             };
@@ -433,6 +442,7 @@ async function loadTopAlbums() {
         topAlbumsContainer.innerHTML = '<p>Не удалось загрузить данные.</p>';
     }
 }
+// ... (функция checkAuthAndLoadContent и слушатель DOMContentLoaded остаются без изменений) ...
 
 async function checkAuthAndLoadContent() {
     const { data: { session } } = await supabaseClient.auth.getSession();
