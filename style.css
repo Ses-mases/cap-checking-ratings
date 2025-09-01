@@ -1,6 +1,4 @@
-/* ==========================================================================
-   1. ГЛОБАЛЬНЫЕ СТИЛИ И ПЕРЕМЕННЫЕ
-   ========================================================================== */
+/* 1. ГЛОБАЛЬНЫЕ СТИЛИ И ПЕРЕМЕННЫЕ */
 :root {
     --bg-color: #ffffff;
     --subtle-bg: #f8f9fa;
@@ -44,9 +42,7 @@ p { margin: 0; }
 img { max-width: 100%; display: block; }
 pre { margin: 0; white-space: pre-wrap; line-height: 1.6; }
 
-/* ==========================================================================
-   2. ОСНОВНАЯ РАЗМЕТКА (HEADER, MAIN, FOOTER)
-   ========================================================================== */
+/* 2. ОСНОВНАЯ РАЗМЕТКА (HEADER, MAIN, FOOTER) */
 header, footer {
     border-color: var(--border-color);
     background-color: var(--bg-color);
@@ -65,11 +61,8 @@ main { max-width: 1400px; margin: 2rem auto; padding: 1rem 2rem; }
 nav { display: flex; gap: 1.5rem; }
 nav a { color: var(--text-color-secondary); font-weight: 500; }
 
-/* ==========================================================================
-   3. ОБЩИЕ КОМПОНЕНТЫ
-   ========================================================================== */
+/* 3. ОБЩИЕ КОМПОНЕНТЫ */
 
-/* --- Кнопки --- */
 .button {
     padding: 10px 20px;
     border-radius: var(--radius-pill);
@@ -107,7 +100,6 @@ nav a { color: var(--text-color-secondary); font-weight: 500; }
 .icon-button svg { width: 20px; height: 20px; }
 .delete-btn:hover { color: var(--error-color); }
 
-/* --- Формы и поля ввода --- */
 input[type="email"], input[type="password"], input[type="text"], input[type="number"], textarea, input[type="range"] {
     font-family: inherit;
     font-size: 1rem;
@@ -134,7 +126,6 @@ input:focus, textarea:focus {
 .status-message.error { color: var(--error-color); }
 .status-message.success { color: var(--success-color); }
 
-/* --- Поиск --- */
 #search-container { position: relative; width: 300px; }
 .search-wrapper { position: relative; }
 .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-color-secondary); pointer-events: none; }
@@ -167,7 +158,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .search-item-artist { font-size: 0.9em; color: var(--text-color-secondary); }
 .search-no-results { padding: 1rem; text-align: center; color: var(--text-color-secondary); }
 
-/* --- Горизонтальный скролл-контейнер со стрелками --- */
 .scroll-wrapper { position: relative; margin: 0 -1rem; padding: 0 1rem; }
 .horizontal-scroll-container { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
 .horizontal-scroll-container::-webkit-scrollbar { display: none; }
@@ -186,7 +176,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .scroll-arrow.next-arrow { right: -10px; }
 .scroll-arrow.hidden { opacity: 0 !important; pointer-events: none !important; }
 
-/* --- Карточки --- */
 .card-link { text-decoration: none; color: inherit; display: block; flex-shrink: 0; }
 .card {
     border: 1px solid transparent;
@@ -212,7 +201,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 }
 
 
-/* --- Модальные окна --- */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
@@ -229,7 +217,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .modal form label { margin-bottom: -0.5rem; font-weight: 500; color: var(--text-color-secondary); }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
 
-/* --- Списки рецензий --- */
 .review-item {
     display: flex;
     gap: 1.5rem;
@@ -249,14 +236,12 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .review-item-text { margin: 0; line-height: 1.6; color: var(--text-color); font-style: italic; }
 .review-item-controls { display: flex; gap: 0.5rem; align-items: center; }
 
-/* --- Аккордеон (Профиль) --- */
 .accordion-item { border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 1rem; }
 .accordion-item summary { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; cursor: pointer; list-style: none; background-color: var(--subtle-bg); }
 .accordion-item summary:hover { background-color: #f1f3f5; }
 .accordion-item summary h3 { margin: 0; }
 .accordion-icon { width: 20px; height: 20px; transition: transform 0.3s ease; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-size: contain; }
 .accordion-item[open] > summary .accordion-icon { transform: rotate(180deg); }
-/* ИСПРАВЛЕНИЕ 3: Отступ для первой рецензии в профиле */
 .accordion-content {
     padding: 1rem 1.5rem 1rem;
 }
@@ -264,7 +249,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .accordion-content .review-item:first-of-type { padding-top: 0; }
 .accordion-content .review-item-text { color: var(--text-color-secondary); padding-left: 1rem; border-left: 3px solid var(--border-color); font-size: 0.95em; }
 
-/* --- Тултипы (подсказки) --- */
 .tooltip-container { position: relative; display: inline-flex; }
 .tooltip-icon { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); color: var(--text-color-secondary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: help; user-select: none; }
 .tooltip-text {
@@ -281,30 +265,25 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 }
 .tooltip-container:hover .tooltip-text, .tooltip-text.is-visible { opacity: 1; visibility: visible; }
 
-/* ==========================================================================
-   4. СТИЛИ ДЛЯ КОНКРЕТНЫХ СТРАНИЦ
-   ========================================================================== */
+/* 4. СТИЛИ ДЛЯ КОНКРЕТНЫХ СТРАНИЦ */
 
-/* --- Главная страница --- */
 #recent-tracks-section .card-link {
-    flex: 0 0 280px; /* Сделал карточки немного больше */
-    height: 280px;   /* Задал им квадратную форму */
-    border-radius: var(--radius-lg); /* Увеличил скругление углов */
+    flex: 0 0 280px;
+    height: 280px;
+    border-radius: var(--radius-lg);
     text-decoration: none;
     color: white;
     display: block;
     overflow: hidden;
     position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Добавил тень в transition */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: var(--shadow-sm);
 }
 
 #recent-tracks-section .card-link:hover {
-    transform: translateY(-8px); /* Увеличил эффект "подъема" */
-    box-shadow: var(--shadow-md); /* Добавил тень при наведении */
+    box-shadow: var(--shadow-md);
 }
 
-/* Убираем стандартные стили для .card внутри этого блока */
 #recent-tracks-section .card {
     border: none;
     box-shadow: none;
@@ -316,26 +295,23 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     overflow: hidden;
 }
 
-/* Отключаем старый эффект наведения для .card */
 #recent-tracks-section .card-link:hover .card {
     transform: none;
     box-shadow: none;
     border-color: transparent;
 }
 
-/* Стили для изображения */
 #recent-tracks-section .card img {
     height: 100%;
     width: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease; /* Плавный переход для увеличения */
+    transition: transform 0.4s ease;
 }
 
 #recent-tracks-section .card-link:hover .card img {
-    transform: scale(1.1); /* Эффект приближения */
+    transform: scale(1.1);
 }
 
-/* Используем .card-body как оверлей с текстом */
 #recent-tracks-section .card-body {
     position: absolute;
     bottom: 0;
@@ -343,20 +319,17 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     right: 0;
     padding: 1.5rem 1.25rem;
     z-index: 2;
-    /* Градиент для читаемости текста */
     background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%);
-    white-space: normal; /* Разрешаем перенос текста */
+    white-space: normal;
 }
 
-/* Стили для текста на оверлее */
 #recent-tracks-section .card-body h3 {
     font-size: 1.3em;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
     line-height: 1.2;
     color: white;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5); /* Тень для текста */
-    /* Убираем старые правила обрезки */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     white-space: normal;
     overflow: visible;
     text-overflow: initial;
@@ -367,7 +340,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     color: white;
     opacity: 0.8;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    /* Убираем старые правила обрезки */
     white-space: normal;
     overflow: visible;
     text-overflow: initial;
@@ -378,11 +350,10 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .top-releases-category { margin-bottom: 2.5rem; }
 .top-releases-category h3 { margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
 
-/* ИСПРАВЛЕНИЕ 2: Идентичность блоков "Лучшие за месяц" */
 .top-card-link { flex: 0 0 380px; text-decoration: none; color: inherit; display: block; }
 .top-card {
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg); /* Большой радиус скругления */
+    border-radius: var(--radius-lg);
     background-color: var(--card-bg);
     overflow: hidden;
     transition: var(--transition-main);
@@ -391,7 +362,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     height: 100%;
 }
 .top-card-link:hover .top-card {
-    transform: translateY(-5px);
     box-shadow: var(--shadow-md);
     border-color: #dee2e6;
 }
@@ -415,7 +385,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .top-card-link.is-second .top-card { border-color: #C0C0C0; background: linear-gradient(to bottom, #fff, #f5f5f5); }
 .top-card-link.is-third .top-card { border-color: #CD7F32; background: linear-gradient(to bottom, #fff, #f5efe6); }
 
-/* --- Модальное окно анонса --- */
 #announcement-modal { max-width: 450px; padding: 0; overflow: hidden; background-color: transparent; box-shadow: none; }
 #announcement-body {
     position: relative; width: 100%; aspect-ratio: 3 / 4;
@@ -448,7 +417,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 }
 .close-modal-btn:hover { background: rgba(0,0,0,0.7); }
 
-/* --- Страница авторизации --- */
 .login-main { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; min-height: calc(100vh - 200px); }
 .login-container {
     width: 100%; max-width: 400px; padding: 2.5rem;
@@ -459,7 +427,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .login-container form { display: flex; flex-direction: column; gap: 1rem; }
 .login-container .button-primary { margin-top: 0.5rem; padding: 12px; font-size: 1em; }
 
-/* --- Страница профиля --- */
 .profile-main { max-width: 900px; }
 .profile-card { background-color: var(--card-bg); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 2rem; }
 .profile-header { display: flex; align-items: center; gap: 1.5rem; }
@@ -483,19 +450,22 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 #username-input:focus { border-bottom-color: var(--primary-color); box-shadow: none; }
 .profile-controls { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
 
-/* --- Страницы релиза (трек/альбом) --- */
 .release-content { max-width: 900px; margin: auto; }
 .release-content > section { margin-bottom: 3rem; }
 .release-header { display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 3rem; }
 .release-cover { width: 250px; height: 250px; object-fit: cover; border-radius: var(--radius-md); box-shadow: var(--shadow-md); flex-shrink: 0; }
 .release-info h2 { margin: 0 0 0.5rem 0; font-size: 2.5em; }
 .release-info h3 { margin: 0 0 1.5rem 0; font-size: 1.5em; font-weight: 400; color: var(--text-color-secondary); }
+.release-date {
+    font-size: 0.9em;
+    color: var(--text-color-secondary);
+    margin: -1.25rem 0 1.5rem 0;
+}
 .ratings-summary { display: flex; gap: 2rem; margin-bottom: 1.5rem; }
 .rating-box { text-align: center; }
 .rating-value { font-size: 2.5em; font-weight: 700; line-height: 1.1; }
 .rating-label { font-size: 0.9em; color: var(--text-color-secondary); }
 .release-extra-info { background-color: var(--subtle-bg); padding: 1rem 1.5rem; border-radius: var(--radius-sm); }
-/* ИСПРАВЛЕНИЕ 4: Отступ для треклиста */
 .track-list-container {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
@@ -515,7 +485,6 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .form-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
 .track-lyrics-container { background-color: var(--subtle-bg); padding: 1.5rem; border-radius: var(--radius-sm); }
 
-/* --- Ползунки (range input) в модальных окнах --- */
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; outline: none; margin-top: 0.5rem; padding: 0; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--primary-color); border-radius: var(--radius-full); cursor: pointer; transition: transform 0.2s ease; }
 input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
@@ -528,9 +497,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 .final-score-container { font-size: 1.3em; text-align: center; margin: 1.5rem 0; padding: 1.25rem; background-color: var(--subtle-bg); border-radius: var(--radius-sm); }
 .final-score-container strong { font-size: 1.5em; margin: 0 0.5rem; min-width: 70px; display: inline-block; }
 
-/* ==========================================================================
-   5. УТИЛИТЫ И АДАПТИВНОСТЬ
-   ========================================================================== */
+/* УТИЛИТЫ И АДАПТИВНОСТЬ */
 .hidden { display: none !important; }
 
 @media (max-width: 800px) {
@@ -558,6 +525,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     .release-header { flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
     .release-cover { width: 100%; max-width: 280px; height: auto; }
     .ratings-summary { justify-content: center; }
+    .release-date { margin-top: -1rem; }
     
     .review-item { flex-wrap: wrap; }
     .review-item-header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }

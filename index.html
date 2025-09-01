@@ -28,42 +28,36 @@
     <main>
         <section id="recent-tracks-section">
             <h2>Новинки</h2>
-            <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ: ОБЕРТКА ДЛЯ СКРОЛЛА И СТРЕЛКИ VVV -->
             <div class="scroll-wrapper">
                 <button class="scroll-arrow prev-arrow" aria-label="Предыдущий">&lt;</button>
                 <div id="recent-tracks-container" class="horizontal-scroll-container">
-                    <!-- Карточки будут загружены сюда -->
+
                 </div>
                 <button class="scroll-arrow next-arrow" aria-label="Следующий">&gt;</button>
             </div>
-            <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
         </section>
 
         <section id="top-releases-section">
             <h2>Лучшие за месяц</h2>
             <div class="top-releases-category">
                 <h3>Треки</h3>
-                <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ: ОБЕРТКА ДЛЯ СКРОЛЛА И СТРЕЛКИ VVV -->
                 <div class="scroll-wrapper">
                     <button class="scroll-arrow prev-arrow" aria-label="Предыдущий">&lt;</button>
                     <div id="top-tracks-container" class="horizontal-scroll-container">
-                        <!-- Карточки лучших треков будут загружены сюда -->
+                        <!-- Карточки лучших треков будут тут -->
                     </div>
                     <button class="scroll-arrow next-arrow" aria-label="Следующий">&gt;</button>
                 </div>
-                <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
             </div>
             <div class="top-releases-category">
                 <h3>Альбомы</h3>
-                <!-- VVV НАЧАЛО ИЗМЕНЕНИЯ: ОБЕРТКА ДЛЯ СКРОЛЛА И СТРЕЛКИ VVV -->
                 <div class="scroll-wrapper">
                     <button class="scroll-arrow prev-arrow" aria-label="Предыдущий">&lt;</button>
                     <div id="top-albums-container" class="horizontal-scroll-container">
-                        <!-- Карточки лучших альбомов будут загружены сюда -->
+                        <!-- Карточки лучших альбомов будут тут -->
                     </div>
                     <button class="scroll-arrow next-arrow" aria-label="Следующий">&gt;</button>
                 </div>
-                <!-- ^^^ КОНЕЦ ИЗМЕНЕНИЯ ^^^ -->
             </div>
         </section>
 
@@ -86,8 +80,8 @@
         <p>&copy; 2025 Cap Checking Ratings</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="common.js"></script> 
-    <script src="app.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="common.js" defer></script> 
+    <script src="app.js" defer></script> 
 </body>
 </html>

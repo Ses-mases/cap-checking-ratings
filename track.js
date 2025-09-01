@@ -1,8 +1,9 @@
-// --- ЭЛЕМЕНТЫ DOM ---
+// ЭЛЕМЕНТЫ DOM
 const loadingIndicator = document.getElementById('loading-indicator');
 const trackContent = document.getElementById('track-content');
 const trackTitle = document.getElementById('track-title');
 const trackArtist = document.getElementById('track-artist');
+const trackReleaseDate = document.getElementById('track-release-date');
 const trackCover = document.getElementById('track-cover');
 const averageRatingEl = document.getElementById('track-average-rating');
 const albumLinkP = document.getElementById('track-album-link');
@@ -14,14 +15,13 @@ const ratingForm = document.getElementById('rating-form');
 const ratingStatus = document.getElementById('rating-status');
 const reviewsList = document.getElementById('reviews-list');
 
-// --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 let currentUser = null;
 let currentTrackId = null;
 
-// ИЗМЕНЕНИЕ: Используем унифицированную структуру для рецензий
 function createCommentElement(profile, score, text) {
     const element = document.createElement('div');
-    element.className = 'review-item'; // Был comment-item
+    element.className = 'review-item';
     const avatarUrl = profile?.avatar_url || 'https://via.placeholder.com/48';
     const username = profile?.username || 'Аноним';
     const scoreFormatted = parseInt(score);
@@ -39,14 +39,14 @@ function createCommentElement(profile, score, text) {
     return element;
 }
 
-// --- ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ ---
+// ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ
 async function loadTrackData(trackId) {
     const { data, error } = await supabaseClient
         .from('tracks')
         .select(`
             *,
             artists ( name ),
-            albums ( id, title, cover_art_url ),
+            albums ( id, title, cover_art_url, release_date ),
             ratings ( *, profiles ( username, avatar_url ) )
         `)
         .eq('id', trackId)
@@ -62,8 +62,13 @@ async function loadTrackData(trackId) {
     trackTitle.textContent = data.title;
     trackArtist.textContent = data.artists?.name || 'Неизвестный артист';
 
-    // ИЗМЕНЕНИЕ: Новая логика выбора обложки
-    // Приоритет: Собственная обложка трека -> Обложка альбома -> Плейсхолдер
+    const releaseDate = data.release_date || data.albums?.release_date;
+    if (releaseDate) {
+        trackReleaseDate.textContent = `Дата релиза: ${new Date(releaseDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    } else {
+        trackReleaseDate.textContent = 'Дата релиза: неизвестна';
+    }
+
     const finalCoverUrl = data.cover_art_url || data.albums?.cover_art_url;
     trackCover.src = getTransformedImageUrl(finalCoverUrl, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
 
@@ -83,7 +88,6 @@ async function loadTrackData(trackId) {
 
     const allRatings = data.ratings || [];
     
-    // ИЗМЕНЕНИЕ: Добавляем расчет и отображение средней оценки
     if (allRatings.length > 0) {
         const averageScore = allRatings.reduce((sum, rating) => sum + rating.score, 0) / allRatings.length;
         averageRatingEl.textContent = averageScore.toFixed(2);
@@ -95,7 +99,6 @@ async function loadTrackData(trackId) {
 
     reviewsList.innerHTML = '';
     if (allRatings.length > 0) {
-        // Сортируем оценки, чтобы своя была сверху (опционально, но удобно)
         allRatings.sort((a, b) => {
             if (a.user_id === currentUser.id) return -1;
             if (b.user_id === currentUser.id) return 1;
@@ -120,7 +123,7 @@ async function loadTrackData(trackId) {
 }
 
 
-// --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+// ОБРАБОТЧИКИ СОБЫТИЙ
 ratingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const scoreInput = document.getElementById('rating-input');
@@ -133,7 +136,6 @@ ratingForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    // ИЗМЕНЕНИЕ: Блокируем кнопку
     submitButton.disabled = true;
     ratingStatus.textContent = "Сохранение...";
     ratingStatus.style.color = 'var(--text-color-secondary)';
@@ -155,19 +157,18 @@ ratingForm.addEventListener('submit', async (e) => {
 
         ratingStatus.textContent = 'Ваша оценка сохранена!';
         ratingStatus.style.color = 'green';
-        await loadTrackData(currentTrackId); // Перезагружаем данные
+        await loadTrackData(currentTrackId);
     } catch (error) {
         console.error("Ошибка сохранения оценки:", error);
         ratingStatus.textContent = 'Ошибка! Не удалось сохранить.';
         ratingStatus.style.color = 'var(--error-color)';
     } finally {
-        // ИЗМЕНЕНИЕ: Разблокируем кнопку
         submitButton.disabled = false;
     }
 });
 
 
-// --- ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ---
+// ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ
 async function initializePage() {
     currentTrackId = new URLSearchParams(window.location.search).get('id');
     if (!currentTrackId) {

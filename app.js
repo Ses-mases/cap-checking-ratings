@@ -1,4 +1,4 @@
-// --- ЭЛЕМЕНТЫ DOM ГЛАВНОЙ СТРАНИЦЫ ---
+// ЭЛЕМЕНТЫ DOM
 const recentTracksContainer = document.getElementById('recent-tracks-container');
 const profileLink = document.getElementById('profile-link');
 
@@ -14,7 +14,7 @@ let currentAnnouncementId = null;
 const topTracksContainer = document.getElementById('top-tracks-container');
 const topAlbumsContainer = document.getElementById('top-albums-container');
 
-// VVV --- НАЧАЛО: НОВАЯ ФУНКЦИЯ ДЛЯ УПРАВЛЕНИЯ СКРОЛЛОМ --- VVV
+// ФУНКЦИЯ ДЛЯ УПРАВЛЕНИЯ СКРОЛЛОМ
 function initializeScrollers() {
     document.querySelectorAll('.scroll-wrapper').forEach(wrapper => {
         const scroller = wrapper.querySelector('.horizontal-scroll-container');
@@ -24,7 +24,6 @@ function initializeScrollers() {
         if (!scroller || !prevBtn || !nextBtn) return;
 
         function updateArrowState() {
-            // Округляем значения, чтобы избежать ошибок с долями пикселей
             const scrollLeft = Math.round(scroller.scrollLeft);
             const scrollWidth = scroller.scrollWidth;
             const clientWidth = scroller.clientWidth;
@@ -34,7 +33,7 @@ function initializeScrollers() {
         }
 
         prevBtn.addEventListener('click', () => {
-            const scrollAmount = scroller.clientWidth * 0.8; // Прокручиваем на 80% видимой области
+            const scrollAmount = scroller.clientWidth * 0.8;
             scroller.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         });
 
@@ -43,15 +42,12 @@ function initializeScrollers() {
             scroller.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         });
 
-        // Обновляем состояние стрелок при прокрутке и изменении размера
         scroller.addEventListener('scroll', updateArrowState);
         new ResizeObserver(updateArrowState).observe(scroller);
 
-        // Первоначальная проверка
         updateArrowState();
     });
 }
-// ^^^ --- КОНЕЦ: НОВАЯ ФУНКЦИЯ ДЛЯ УПРАВЛЕНИЯ СКРОЛЛОМ --- ^^^
 
 async function handleAnnouncements() {
     const lastShown = localStorage.getItem('announcementLastShown');
@@ -78,12 +74,26 @@ async function handleAnnouncements() {
             return;
         }
 
-        if (data) {
+        if (data && data.image_url) {
+            // =================================================================
+            // НАЧАЛО: Код для предзагрузки ключевого изображения
+            // =================================================================
+            // Динамически создаем тег <link> для предзагрузки
+            const preloadLink = document.createElement('link');
+            preloadLink.rel = 'preload';
+            preloadLink.as = 'image';
+            preloadLink.href = data.image_url;
+            // Добавляем тег в <head> документа
+            document.head.appendChild(preloadLink);
+            // =================================================================
+            // КОНЕЦ: Код для предзагрузки ключевого изображения
+            // =================================================================
+            
             currentAnnouncementId = data.id;
 
             announcementTitle.textContent = data.title;
             announcementDescription.textContent = data.description;
-            announcementBody.style.backgroundImage = `url(${data.image_url || 'https://via.placeholder.com/450x600'})`;
+            announcementBody.style.backgroundImage = `url(${data.image_url})`;
             announcementDate.textContent = new Date(data.release_date).toLocaleDateString('ru-RU', {
                 day: 'numeric', month: 'long', year: 'numeric'
             });
@@ -147,16 +157,16 @@ async function loadRecentReleases() {
     try {
         const { data: albums, error: albumsError } = await supabaseClient
             .from('albums')
-            .select('id, title, cover_art_url, artists(name)')
-            .order('id', { ascending: false })
+            .select('id, title, cover_art_url, artists(name), release_date')
+            .order('release_date', { ascending: false, nullsLast: true })
             .limit(10);
         if (albumsError) throw albumsError;
 
         const { data: singles, error: singlesError } = await supabaseClient
             .from('tracks')
-            .select('id, title, cover_art_url, artists(name), albums(cover_art_url)')
+            .select('id, title, cover_art_url, artists(name), albums(cover_art_url), release_date')
             .is('album_id', null)
-            .order('id', { ascending: false })
+            .order('release_date', { ascending: false, nullsLast: true })
             .limit(10);
         if (singlesError) throw singlesError;
 
@@ -167,7 +177,8 @@ async function loadRecentReleases() {
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
-            link: `album.html?id=${item.id}`
+            link: `album.html?id=${item.id}`,
+            releaseDate: item.release_date
         }));
 
         const mappedSingles = singles.map(item => ({
@@ -175,11 +186,12 @@ async function loadRecentReleases() {
             title: item.title,
             artistName: item.artists?.name || 'Неизвестный артист',
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
-            link: `track.html?id=${item.id}`
+            link: `track.html?id=${item.id}`,
+            releaseDate: item.release_date
         }));
 
         const allReleases = [...mappedAlbums, ...mappedSingles]
-            .sort((a, b) => b.id - a.id)
+            .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
             .slice(0, 12);
         
         if (allReleases.length === 0) {
@@ -196,7 +208,7 @@ async function loadRecentReleases() {
 
             cardLink.innerHTML = `
                 <div class="card">
-                    <img src="${coverSource}" alt="Обложка">
+                    <img src="${coverSource}" alt="Обложка" loading="lazy">
                     <div class="card-body">
                         <h3>${release.title}</h3>
                         <p>${release.artistName}</p>
@@ -247,7 +259,7 @@ function renderTopReleases(container, releases, type) {
         cardLink.innerHTML = `
             <div class="top-card">
                 <div class="top-card-header">
-                    <img src="${coverSource}" alt="Обложка" class="top-card-cover">
+                    <img src="${coverSource}" alt="Обложка" class="top-card-cover" loading="lazy">
                     <div class="top-card-info">
                         <h4 class="top-card-title">${release.title}</h4>
                         <p class="top-card-artist">${release.artistName}</p>
@@ -438,7 +450,7 @@ async function checkAuthAndLoadContent() {
             loadTopAlbums()
         ]);
         handleAnnouncements();
-        initializeScrollers(); // <--- ИНИЦИАЛИЗИРУЕМ СКРОЛЛЕРЫ ПОСЛЕ ЗАГРУЗКИ КОНТЕНТА
+        initializeScrollers();
     }
 }
 

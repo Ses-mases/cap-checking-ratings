@@ -10,8 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <!-- VVV ОБНОВЛЕННАЯ СТРУКТУРА VVV -->
     <header>
         <h1>Cap Checking Ratings</h1>
     </header>
@@ -22,7 +20,6 @@
             <form id="login-form">
                 <input type="email" id="email" placeholder="Email" required>
                 <input type="password" id="password" placeholder="Пароль" required>
-                <!-- Добавлен класс для стилизации кнопки -->
                 <button type="submit" class="button button-primary">Войти</button>
             </form>
             <div id="error-message"></div>
@@ -32,9 +29,8 @@
     <footer>
         <p>&copy; 2025 Cap Checking Ratings</p>
     </footer>
-    <!-- ^^^ КОНЕЦ ОБНОВЛЕННОЙ СТРУКТУРЫ ^^^ -->
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="login.js" defer></script>
 </body>
 </html>

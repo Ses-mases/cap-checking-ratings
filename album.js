@@ -1,8 +1,9 @@
-// --- ЭЛЕМЕНТЫ DOM ---
+// ЭЛЕМЕНТЫ DOM
 const loadingIndicator = document.getElementById('loading-indicator');
 const albumContent = document.getElementById('album-content');
 const albumTitle = document.getElementById('album-title');
 const albumArtist = document.getElementById('album-artist');
+const albumReleaseDate = document.getElementById('album-release-date');
 const albumCover = document.getElementById('album-cover');
 const expertRatingEl = document.getElementById('album-expert-rating');
 const trackRatingEl = document.getElementById('album-track-rating');
@@ -12,7 +13,7 @@ const trackList = document.getElementById('track-list');
 const commentsList = document.getElementById('comments-list');
 const rateReleaseButton = document.getElementById('rate-release-button');
 
-// --- ЭЛЕМЕНТЫ МОДАЛЬНОГО ОКНА ---
+// ЭЛЕМЕНТЫ МОДАЛЬНОГО ОКНА
 const modalOverlay = document.getElementById('album-rating-modal-overlay');
 const albumRatingForm = document.getElementById('album-rating-form');
 const finalScoreDisplay = document.getElementById('final-score-display');
@@ -31,11 +32,11 @@ const reviewInput = document.getElementById('review-input');
 const submitAlbumRatingBtn = document.getElementById('submit-album-rating');
 const cancelAlbumRatingBtn = document.getElementById('cancel-album-rating');
 
-// --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 let currentUser = null;
 let currentAlbumId = null;
 
-// --- ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ ---
+// ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ
 async function loadAlbumData(albumId) {
     const { data, error } = await supabaseClient
         .from('albums')
@@ -56,7 +57,13 @@ async function loadAlbumData(albumId) {
     document.title = `${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
     albumArtist.textContent = data.artists.name;
-    // ИЗМЕНЕНИЕ: Оптимизируем главную обложку
+
+    if (data.release_date) {
+        albumReleaseDate.textContent = `Дата релиза: ${new Date(data.release_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    } else {
+        albumReleaseDate.textContent = 'Дата релиза: неизвестна';
+    }
+
     albumCover.src = getTransformedImageUrl(data.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
     if (data.extra_info && data.extra_info.trim() !== '') {
         extraInfoP.textContent = data.extra_info;
@@ -64,7 +71,6 @@ async function loadAlbumData(albumId) {
     }
     const expertRatings = data.album_ratings || [];
     
-    // ИЗМЕНЕНИЕ: Добавляем расчет средней экспертной оценки
     if (expertRatings.length > 0) {
         const avgExpertScore = expertRatings.reduce((acc, r) => acc + r.final_score, 0) / expertRatings.length;
         expertRatingEl.textContent = avgExpertScore.toFixed(2);
@@ -139,7 +145,7 @@ async function loadUserAlbumRating() {
     }
 }
 
-// --- ЛОГИКА МОДАЛЬНОГО ОКНА ---
+// ЛОГИКА МОДАЛЬНОГО ОКНА
 function initializeRatingModal() {
     rateReleaseButton.addEventListener('click', async () => {
         await loadUserAlbumRating();
@@ -165,24 +171,20 @@ function initializeRatingModal() {
     const tooltipIcons = document.querySelectorAll('.tooltip-icon');
     tooltipIcons.forEach(icon => {
         icon.addEventListener('click', (e) => {
-            // Предотвращаем всплытие события, чтобы не закрыть модальное окно
             e.stopPropagation(); 
             
             const tooltipText = icon.nextElementSibling;
             
-            // Закрываем все другие открытые тултипы
             document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
                 if (visibleTooltip !== tooltipText) {
                     visibleTooltip.classList.remove('is-visible');
                 }
             });
             
-            // Переключаем видимость текущего тултипа
             tooltipText.classList.toggle('is-visible');
         });
     });
 
-    // Добавим закрытие тултипов при клике в любом месте модального окна
     albumRatingForm.addEventListener('click', () => {
         document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
             visibleTooltip.classList.remove('is-visible');
@@ -205,7 +207,6 @@ function calculateFinalScore() {
 async function handleRatingSubmit(e) {
     e.preventDefault();
     
-    // ИЗМЕНЕНИЕ: Блокируем кнопку на время отправки
     submitAlbumRatingBtn.disabled = true;
     albumRatingStatus.textContent = "Сохранение...";
     albumRatingStatus.style.color = 'var(--text-color-secondary)';
@@ -233,11 +234,10 @@ async function handleRatingSubmit(e) {
         albumRatingStatus.textContent = "Ваша оценка сохранена!";
         albumRatingStatus.style.color = 'green';
 
-        // ИЗМЕНЕНИЕ: Чуть дольше показываем сообщение об успехе
         setTimeout(() => {
             modalOverlay.classList.remove('is-visible');
             albumRatingStatus.textContent = '';
-            loadAlbumData(currentAlbumId); // Перезагружаем данные для обновления страницы
+            loadAlbumData(currentAlbumId);
         }, 2000);
 
     } catch (error) {
@@ -245,12 +245,11 @@ async function handleRatingSubmit(e) {
         albumRatingStatus.textContent = "Произошла ошибка.";
         albumRatingStatus.style.color = 'var(--error-color)';
     } finally {
-        // ИЗМЕНЕНИЕ: Разблокируем кнопку в любом случае
         submitAlbumRatingBtn.disabled = false;
     }
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ---
+// ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ
 async function initializePage() {
     currentAlbumId = new URLSearchParams(window.location.search).get('id');
     if (!currentAlbumId) {

@@ -1,10 +1,10 @@
-// --- 1. ОБЩАЯ НАСТРОЙКА SUPABASE ---
+// ОБЩАЯ НАСТРОЙКА SUPABASE
 const SUPABASE_URL = 'https://texytgcdtafeejqxftqj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleHl0Z2NkdGFmZWVqcXhmdHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTM2MjUsImV4cCI6MjA3MjEyOTYyNX0.1hWMcDYm4JdWjDKTvS_7uBatorByAK6RtN9LYljpacc';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
-// VVV --- НОВАЯ ФУНКЦИЯ ОПТИМИЗАЦИИ ИЗОБРАЖЕНИЙ --- VVV
+// ФУНКЦИЯ ОПТИМИЗАЦИИ ИЗОБРАЖЕНИЙ
 function getTransformedImageUrl(url, options) {
     if (!url || !url.startsWith(SUPABASE_URL)) {
         return url;
@@ -14,16 +14,14 @@ function getTransformedImageUrl(url, options) {
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
         
-        // Находим 'public' и берем следующие сегменты
         const publicIndex = pathSegments.indexOf('public');
         if (publicIndex === -1 || publicIndex + 1 >= pathSegments.length) {
-            return url; // Неожиданный формат URL
+            return url;
         }
 
         const bucketName = pathSegments[publicIndex + 1];
         const filePath = pathSegments.slice(publicIndex + 2).join('/');
 
-        // Используем встроенный метод .getPublicUrl() с опцией transform
         const { data } = supabaseClient
             .storage
             .from(bucketName)
@@ -33,15 +31,14 @@ function getTransformedImageUrl(url, options) {
 
     } catch (error) {
         console.error('Ошибка при трансформации URL изображения:', error);
-        return url; // В случае ошибки возвращаем оригинальный URL
+        return url;
     }
 }
 
-// --- 2. НОВЫЕ ОБЩИЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-// ИЗМЕНЕНИЕ: Эти функции были дублированы в album.js и track.js. Теперь они в одном месте.
+// ОБЩИЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 function getScoreColor(score, maxScore = 30) {
-    if (score === null || score === undefined) return '#6c757d'; // Цвет по умолчанию
-    const hue = (score / maxScore) * 120; // 0 = red, 120 = green
+    if (score === null || score === undefined) return '#6c757d';
+    const hue = (score / maxScore) * 120;
     return `hsl(${hue}, 90%, 40%)`;
 }
 
@@ -57,7 +54,7 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
     const reviewText = text || 'Пользователь не оставил рецензию.';
 
     element.innerHTML = `
-        <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar">
+        <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar" loading="lazy">
         <div class="review-item-body">
             <div class="review-item-header">
                 <span class="review-item-author">${username}</span>
@@ -69,7 +66,7 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
 }
 
 
-// --- 3. ОБЩАЯ ЛОГИКА ВЫХОДА ИЗ СИСТЕМЫ ---
+// ЛОГИКА ВЫХОДА ИЗ СИСТЕМЫ
 const logoutButton = document.getElementById('logout-button');
 if (logoutButton) {
     logoutButton.addEventListener('click', async (e) => {
@@ -84,7 +81,7 @@ if (logoutButton) {
 }
 
 
-// --- 4. ОБЩАЯ ЛОГИКА ПОИСКА ---
+// ЛОГИКА ПОИСКА
 const searchInput = document.getElementById('search-input');
 const searchResultsContainer = document.getElementById('search-results-container');
 
@@ -113,14 +110,13 @@ if (searchInput && searchResultsContainer) {
 
         const createItem = (item, type) => {
             const isArtist = type === 'artist';
-            // ИЗМЕНЕНИЕ: Для артистов используется div, для остальных - ссылка
+
             const tag = isArtist ? 'div' : 'a'; 
             const href = isArtist ? '' : `href="${type}.html?id=${item.id}"`;
             const icon = type === 'artist' ? iconArtist : (type === 'album' ? iconAlbum : iconTrack);
             const artistName = item.artists ? `<span class="search-item-artist">${item.artists.name}</span>` : '';
             const title = item.name || item.title;
 
-            // ИЗМЕНЕНИЕ: Добавлен title атрибут для всплывающей подсказки, если текст обрезан
             return `
                 <${tag} ${href} class="search-result-item" title="${title}${item.artists ? ` - ${item.artists.name}` : ''}">
                     <div class="search-item-icon">${icon}</div>
@@ -162,7 +158,6 @@ if (searchInput && searchResultsContainer) {
                 supabaseClient.from('tracks').select('id, title, artists(name)').ilike('title', `%${query}%`).limit(5)
             ]);
             
-            // ИЗМЕНЕНИЕ: Более надежная проверка ошибок
             const errors = [artistsRes.error, albumsRes.error, tracksRes.error].filter(Boolean);
             if (errors.length > 0) {
                 throw new Error(errors.map(e => e.message).join(', '));
@@ -175,7 +170,6 @@ if (searchInput && searchResultsContainer) {
         }
     }
     
-    // ИЗМЕНЕНИЕ: Добавлена проверка фокуса для более интуитивного поведения
     searchInput.addEventListener('input', debounce((e) => performSearch(e.target.value.trim())));
     searchInput.addEventListener('focus', () => {
         if (searchInput.value.length >= 2) {

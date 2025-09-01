@@ -1,4 +1,4 @@
-// --- ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ---
+// ИНИЦИАЛИЗАЦИЯ
 document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { 
@@ -14,19 +14,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-// --- КОМПОНЕНТ: INLINE РЕДАКТОР ПРОФИЛЯ ---
+// КОМПОНЕНТ: INLINE РЕДАКТОР ПРОФИЛЯ
 function initializeProfileEditor(user) {
     const profileCard = document.getElementById('profile-details-section');
     const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
     
-    // Элементы управления
     const editProfileButton = document.getElementById('edit-profile-button');
     const saveProfileButton = document.getElementById('save-profile-button');
     const cancelEditButton = document.getElementById('cancel-edit-button');
     const editAvatarButton = document.getElementById('edit-avatar-button');
     
-    // Элементы формы
     const usernameInput = document.getElementById('username-input');
     const avatarInput = document.getElementById('avatar-input');
     const updateStatus = document.getElementById('update-status');
@@ -35,7 +33,6 @@ function initializeProfileEditor(user) {
     let originalUsername = '';
     let originalAvatarSrc = '';
 
-    // 1. Загрузка данных
     async function fetchProfileData() {
         try {
             const { data, error } = await supabaseClient.from('profiles').select('username, avatar_url').eq('id', user.id).single();
@@ -56,7 +53,6 @@ function initializeProfileEditor(user) {
         }
     }
 
-    // 2. Функции переключения режимов
     function enterEditMode() {
         usernameInput.value = originalUsername;
         profileCard.classList.add('is-editing');
@@ -72,7 +68,6 @@ function initializeProfileEditor(user) {
         updateStatus.textContent = '';
     }
 
-    // 3. Обработка сохранения
     async function handleSave() {
         saveProfileButton.disabled = true;
         cancelEditButton.disabled = true;
@@ -93,11 +88,9 @@ function initializeProfileEditor(user) {
                 }
             }
 
-            // VVV --- НАЧАЛО ИЗМЕНЕНИЙ: КОНВЕРТАЦИЯ И СЖАТИЕ ИЗОБРАЖЕНИЯ --- VVV
             if (file) {
                 let processedFile;
                 try {
-                    // Опции для сжатия: преобразуем в JPEG и ограничиваем размер
                     const options = {
                       maxSizeMB: 1,
                       maxWidthOrHeight: 1024,
@@ -112,14 +105,11 @@ function initializeProfileEditor(user) {
                 }
                 
                 updateStatus.textContent = 'Загрузка аватара...';
-                // Генерируем имя файла с расширением .jpg, так как мы его конвертировали
                 const safeFileName = `${user.id}-${Date.now()}.jpg`;
                 const filePath = `public/${safeFileName}`;
                 
-                // Загружаем обработанный файл
                 const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, processedFile);
                 if (uploadError) {
-                    // Улучшаем сообщение об ошибке для пользователя
                     console.error('Ошибка загрузки файла Supabase:', uploadError);
                     throw new Error('Ошибка загрузки файла. Проверьте интернет-соединение или попробуйте другое фото.');
                 }
@@ -127,9 +117,7 @@ function initializeProfileEditor(user) {
                 const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
                 newAvatarPublicUrl = data.publicUrl;
             }
-            // ^^^ --- КОНЕЦ ИЗМЕНЕНИЙ --- ^^^
 
-            // Шаг 2: Готовим и отправляем обновления в базу данных
             const updates = { username: newUsername, updated_at: new Date() };
             if (newAvatarPublicUrl) {
                 updates.avatar_url = newAvatarPublicUrl;
@@ -138,7 +126,6 @@ function initializeProfileEditor(user) {
             const { error: updateError } = await supabaseClient.from('profiles').update(updates).eq('id', user.id);
             if (updateError) throw updateError;
             
-            // Шаг 3: Только после успешного обновления профиля, удаляем старый аватар
             if (newAvatarPublicUrl && oldAvatarPath) {
                 const { error: removeError } = await supabaseClient.storage.from('avatars').remove([oldAvatarPath]);
                 if (removeError) {
@@ -168,7 +155,6 @@ function initializeProfileEditor(user) {
         }
     }
 
-    // 4. Назначение обработчиков событий
     editProfileButton.addEventListener('click', enterEditMode);
     cancelEditButton.addEventListener('click', () => exitEditMode(true));
     saveProfileButton.addEventListener('click', handleSave);
@@ -184,7 +170,7 @@ function initializeProfileEditor(user) {
     fetchProfileData();
 }
 
-// --- КОМПОНЕНТ: ОЦЕНКИ ТРЕКОВ ---
+// КОМПОНЕНТ: ОЦЕНКИ ТРЕКОВ
 function initializeTrackRatings(user) {
     const trackRatingsList = document.getElementById('track-ratings-list');
     if (!trackRatingsList) return;
@@ -192,9 +178,9 @@ function initializeTrackRatings(user) {
     async function fetchAndRender() {
         const { data, error } = await supabaseClient
             .from('ratings')
-            .select(`id, score, review_text, tracks(id, title, cover_art_url, albums(cover_art_url))`) // ИЗМЕНЕНИЕ: Добавили cover_art_url
+            .select(`id, score, review_text, tracks(id, title, cover_art_url, albums(cover_art_url))`)
             .eq('user_id', user.id)
-            .order('id', { ascending: false }); // Сортируем по последним
+            .order('id', { ascending: false });
 
         trackRatingsList.innerHTML = '';
         if (error) {
@@ -205,19 +191,18 @@ function initializeTrackRatings(user) {
 
         if (data && data.length > 0) {
             data.forEach(rating => {
-                if (!rating.tracks) return; // Пропускаем оценки для удаленных треков
+                if (!rating.tracks) return;
                 const item = document.createElement('div');
                 item.className = 'review-item'; 
                 
                 const reviewText = rating.review_text || '';
                 const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
                 
-                // ИЗМЕНЕНИЕ: Логика выбора обложки
                 const finalCoverUrl = rating.tracks.cover_art_url || rating.tracks.albums?.cover_art_url;
                 const coverUrl = getTransformedImageUrl(finalCoverUrl, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
 
                 item.innerHTML = `
-                    <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
+                    <img src="${coverUrl}" alt="Обложка" class="review-item-cover" loading="lazy">
                     <div class="review-item-body">
                         <div class="review-item-header">
                             <a href="track.html?id=${rating.tracks.id}" class="review-item-title">${rating.tracks.title}</a>
@@ -274,7 +259,7 @@ function initializeTrackRatings(user) {
     fetchAndRender();
 }
 
-// --- КОМПОНЕНТ: ОЦЕНКИ АЛЬБОМОВ ---
+// КОМПОНЕНТ: ОЦЕНКИ АЛЬБОМОВ
 function initializeAlbumRatings(user) {
     const albumRatingsList = document.getElementById('album-ratings-list');
     if (!albumRatingsList) return;
@@ -304,7 +289,7 @@ function initializeAlbumRatings(user) {
                 const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
                 
                 item.innerHTML = `
-                    <img src="${coverUrl}" alt="Обложка" class="review-item-cover">
+                    <img src="${coverUrl}" alt="Обложка" class="review-item-cover" loading="lazy">
                     <div class="review-item-body">
                          <div class="review-item-header">
                             <a href="album.html?id=${rating.albums.id}" class="review-item-title">${rating.albums.title}</a>
@@ -347,7 +332,7 @@ function initializeAlbumRatings(user) {
     fetchAndRender();
 }
 
-// --- КОМПОНЕНТ: МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ОЦЕНКИ ТРЕКА ---
+// КОМПОНЕНТ: МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ОЦЕНКИ ТРЕКА
 function initializeRatingEditModal() {
     const modalOverlay = document.getElementById('edit-modal-overlay');
     if (!modalOverlay) return;
