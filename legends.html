@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Артист | Cap Checking Ratings</title>
+    <title>Зал Легенд | Cap Checking Ratings</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,41 +43,21 @@
     </header>
 
     <main>
-        <div id="loading-indicator">Загрузка информации об артисте...</div>
-
-        <article id="artist-content" class="hidden">
-            <section id="artist-header" class="release-header">
-                <img id="artist-avatar" src="https://via.placeholder.com/250" alt="Аватар артиста" class="release-cover artist-avatar">
-                <div class="release-info">
-                    <h2 id="artist-name">Имя артиста</h2>
-                    <p id="artist-description" class="artist-description"></p>
-                </div>
-            </section>
-            
-            <section id="artist-tracks-section">
-                <h3>Треки</h3>
-                <div id="artist-tracks-list" class="track-list-container">
-                    <!-- Треки будут добавлены здесь -->
-                </div>
-                <button id="show-all-tracks-btn" class="button button-secondary hidden">Показать все</button>
-            </section>
-            
-            <section id="artist-albums-section">
-                <h3>Альбомы</h3>
-                 <div class="scroll-wrapper">
-                    <button class="scroll-arrow prev-arrow" aria-label="Предыдущий">&lt;</button>
-                    <div id="artist-albums-container" class="horizontal-scroll-container">
-                        <!-- Альбомы будут добавлены здесь -->
-                    </div>
-                    <button class="scroll-arrow next-arrow" aria-label="Следующий">&gt;</button>
-                </div>
-            </section>
-        </article>
+        <section id="legends-section">
+            <h2>Зал Легенд</h2>
+            <p class="legends-description">Альбомы, средняя экспертная оценка которых превысила 27 баллов из 30.</p>
+            <div id="legends-grid-container">
+                <p>Загрузка легендарных альбомов...</p>
+            </div>
+        </section>
     </main>
-    
-    <footer><p>&copy; 2025 Cap Checking Ratings</p></footer>
+
+    <footer>
+        <p>&copy; 2025 Cap Checking Ratings</p>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="common.js" defer></script> 
-    <script src="artist.js" defer></script> 
+    <script src="legends.js" defer></script> 
 </body>
 </html>

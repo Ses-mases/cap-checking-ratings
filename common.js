@@ -3,6 +3,21 @@ const SUPABASE_URL = 'https://texytgcdtafeejqxftqj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleHl0Z2NkdGFmZWVqcXhmdHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTM2MjUsImV4cCI6MjA3MjEyOTYyNX0.1hWMcDYm4JdWjDKTvS_7uBatorByAK6RtN9LYljpacc';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " г. назад";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " мес. назад";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " д. назад";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " ч. назад";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " мин. назад";
+    return "только что";
+}
+
 
 // ФУНКЦИЯ ОПТИМИЗАЦИИ ИЗОБРАЖЕНИЙ
 function getTransformedImageUrl(url, options) {
@@ -202,4 +217,125 @@ if (searchInput && searchResultsContainer) {
             searchResultsContainer.style.display = 'none';
         }
     });
+}
+
+// ЛОГИКА УВЕДОМЛЕНИЙ
+const notificationsContainer = document.getElementById('notifications-container');
+
+if (notificationsContainer) {
+    const bellButton = document.getElementById('notification-bell-button');
+    const countBadge = document.getElementById('notifications-count');
+    const dropdown = document.getElementById('notifications-dropdown');
+    const notificationsList = document.getElementById('notifications-list');
+    let unreadNotificationsIds = [];
+
+    // Функция для отображения уведомлений в списке
+    function renderNotifications(notifications) {
+        notificationsList.innerHTML = '';
+        if (!notifications || notifications.length === 0) {
+            notificationsList.innerHTML = '<p class="no-notifications">Уведомлений пока нет.</p>';
+            return;
+        }
+
+        notifications.forEach(notif => {
+            const creator = notif.creator_user_id; // В Supabase это будет объект profiles
+            const avatarUrl = getTransformedImageUrl(creator?.avatar_url, { width: 80, height: 80, resize: 'cover' }) || 'https://via.placeholder.com/40';
+            
+            const item = document.createElement('a');
+            item.href = notif.link_url || '#';
+            item.className = 'notification-item';
+            if (!notif.is_read) {
+                item.classList.add('is-unread');
+            }
+            
+            item.innerHTML = `
+                <img src="${avatarUrl}" alt="Аватар" class="notification-avatar">
+                <div class="notification-body">
+                    <p class="notification-content">${notif.content}</p>
+                    <p class="notification-date">${timeAgo(notif.created_at)}</p>
+                </div>
+            `;
+            notificationsList.appendChild(item);
+        });
+    }
+
+    // Функция для обновления счетчика непрочитанных
+    function updateUnreadCount(notifications) {
+        const unread = notifications.filter(n => !n.is_read);
+        unreadNotificationsIds = unread.map(n => n.id);
+
+        if (unread.length > 0) {
+            countBadge.textContent = unread.length > 9 ? '9+' : unread.length;
+            countBadge.classList.add('is-visible');
+        } else {
+            countBadge.classList.remove('is-visible');
+        }
+    }
+    
+    // Функция для пометки уведомлений как прочитанных
+    async function markNotificationsAsRead() {
+        if (unreadNotificationsIds.length === 0) return;
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .update({ is_read: true })
+            .in('id', unreadNotificationsIds);
+        
+        if (error) {
+            console.error("Ошибка при обновлении статуса уведомлений:", error);
+        } else {
+            // Убираем счетчик сразу, не дожидаясь перезагрузки страницы
+            unreadNotificationsIds = [];
+            countBadge.classList.remove('is-visible');
+            document.querySelectorAll('.notification-item.is-unread').forEach(item => {
+                item.classList.remove('is-unread');
+            });
+        }
+    }
+
+    // Открытие/закрытие выпадающего списка
+    bellButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = dropdown.classList.toggle('is-visible');
+        if (isVisible) {
+            markNotificationsAsRead();
+        }
+    });
+
+    // Закрытие по клику вне элемента
+    document.addEventListener('click', (e) => {
+        if (!notificationsContainer.contains(e.target)) {
+            dropdown.classList.remove('is-visible');
+        }
+    });
+
+    // Основная функция инициализации
+    async function initializeNotifications() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return; // Не выполнять для неавторизованных пользователей
+
+        const userId = session.user.id;
+        
+        const { data, error } = await supabaseClient
+            .from('notifications')
+            .select(`
+                id, content, link_url, is_read, created_at,
+                creator_user_id ( username, avatar_url )
+            `)
+            .eq('recipient_user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(15);
+        
+        if (error) {
+            console.error("Ошибка загрузки уведомлений:", error);
+            notificationsList.innerHTML = '<p class="no-notifications">Ошибка загрузки.</p>';
+            return;
+        }
+
+        renderNotifications(data);
+        updateUnreadCount(data);
+    }
+
+    // Запускаем при загрузке страницы
+    initializeNotifications();
 }

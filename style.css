@@ -50,15 +50,28 @@ header, footer {
 header {
     padding: 1.5rem 2rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color);
 }
-header h1 { font-size: 1.5em; }
+header h1 {
+    flex: 0 1 auto; /* Не растягивать, но позволять сжиматься при необходимости */
+    margin: 0;
+    padding: 0 2rem; /* Добавим немного воздуха по бокам */
+    font-size: 1.5em;
+    text-align: center;
+    white-space: nowrap; /* Чтобы заголовок не переносился на две строки */
+}
 footer { text-align: center; padding: 2rem 1rem; border-top: 1px solid; margin-top: 3rem; color: var(--text-color-secondary); }
 
 main { max-width: 1400px; margin: 2rem auto; padding: 1rem 2rem; }
-nav { display: flex; gap: 1.5rem; }
+nav {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end; /* Выравниваем навигацию по правому краю */
+    align-items: center; /* Вертикальное выравнивание для иконки и текста */
+    gap: 1.5rem;
+}
 nav a { color: var(--text-color-secondary); font-weight: 500; }
 
 /* 3. ОБЩИЕ КОМПОНЕНТЫ */
@@ -126,7 +139,11 @@ input:focus, textarea:focus {
 .status-message.error { color: var(--error-color); }
 .status-message.success { color: var(--success-color); }
 
-#search-container { position: relative; width: 300px; }
+#search-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+}
 .search-wrapper { position: relative; }
 .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-color-secondary); pointer-events: none; }
 #search-input { background-color: var(--subtle-bg); border-radius: var(--radius-pill); padding-left: 45px; border: 1px solid transparent; }
@@ -509,6 +526,30 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 .final-score-container { font-size: 1.3em; text-align: center; margin: 1.5rem 0; padding: 1.25rem; background-color: var(--subtle-bg); border-radius: var(--radius-sm); }
 .final-score-container strong { font-size: 1.5em; margin: 0 0.5rem; min-width: 70px; display: inline-block; }
 
+/* СТИЛИ ДЛЯ ЗАЛА ЛЕГЕНД */
+.legends-description {
+    color: var(--text-color-secondary);
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+#legends-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+#legends-grid-container .card-link {
+    flex-shrink: 1; /* Override for grid */
+}
+.legend-score {
+    margin-top: 0.5rem !important;
+    font-size: 1em !important;
+    color: var(--text-color) !important;
+}
+.legend-score strong {
+    color: var(--success-color);
+}
+
+
 /* УТИЛИТЫ И АДАПТИВНОСТЬ */
 .hidden { display: none !important; }
 
@@ -566,4 +607,141 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     .top-card-score { font-size: 1.2em; }
     #artist-albums-section .card-link { flex: 0 0 180px; }
 
+    #legends-grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+}
+
+/* 5. СТИЛИ УВЕДОМЛЕНИЙ (добавьте в конец style.css) */
+#notifications-container {
+    position: relative;
+}
+
+#notification-bell-button {
+    position: relative;
+}
+
+.notification-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--error-color);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: none; /* Скрыт по умолчанию */
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid var(--bg-color);
+}
+
+.notification-count.is-visible {
+    display: flex;
+}
+
+.notifications-dropdown {
+    display: none; /* Скрыт по умолчанию */
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 380px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 3000;
+    overflow: hidden;
+}
+
+.notifications-dropdown.is-visible {
+    display: block;
+}
+
+.notifications-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--subtle-bg);
+}
+
+.notifications-header h3 {
+    font-size: 1.1em;
+    margin: 0;
+}
+
+#notifications-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    text-decoration: none;
+    color: var(--text-color);
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: var(--subtle-bg);
+}
+
+.notification-item.is-unread {
+    background-color: #f0f7ff;
+}
+
+.notification-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.notification-body {
+    flex-grow: 1;
+}
+
+.notification-content {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+
+.notification-content strong {
+    font-weight: 700;
+}
+
+.notification-date {
+    font-size: 0.8em;
+    color: var(--text-color-secondary);
+    margin-top: 0.25rem;
+}
+
+.no-notifications {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--text-color-secondary);
+}
+
+@media (max-width: 800px) {
+    .notifications-dropdown {
+        position: fixed;
+        top: 70px; /* Примерное положение под шапкой */
+        left: 10px;
+        right: 10px;
+        width: auto;
+    }
 }

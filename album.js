@@ -132,8 +132,6 @@ async function loadAlbumData(albumId) {
     albumContent.classList.remove('hidden');
 }
 
-// ... (остальные функции модального окна остаются без изменений) ...
-
 async function loadUserAlbumRating() {
     const { data } = await supabaseClient.from('album_ratings').select('*').eq('album_id', currentAlbumId).eq('user_id', currentUser.id).single();
     if (data) {
@@ -202,9 +200,28 @@ async function handleRatingSubmit(e) {
             final_score: finalScore,
             review_text: reviewInput.value.trim() || null
         }, { onConflict: 'album_id, user_id' });
+        
         if (error) throw error;
+        
         albumRatingStatus.textContent = "Ваша оценка сохранена!";
         albumRatingStatus.style.color = 'var(--success-color)';
+
+        // --- ИЗМЕНЕНИЕ: ОТПРАВКА УВЕДОМЛЕНИЯ ---
+        // Получаем профиль текущего пользователя для уведомления
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('id, username')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (profile && !profileError) {
+            // Запускаем создание уведомления в фоновом режиме, чтобы не задерживать пользователя
+            createReviewNotification('album', currentAlbumId, profile, albumTitle.textContent);
+        } else if (profileError) {
+            console.error("Не удалось получить профиль пользователя для отправки уведомления:", profileError);
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
         setTimeout(() => {
             modalOverlay.classList.remove('is-visible');
             albumRatingStatus.textContent = '';
@@ -243,4 +260,3 @@ async function initializePage() {
 }
 
 document.addEventListener('DOMContentLoaded', initializePage);
-

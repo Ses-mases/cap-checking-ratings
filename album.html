@@ -20,7 +20,24 @@
         </div>
         <h1>Cap Checking Ratings</h1>
         <nav>
+            <div id="notifications-container">
+                <button id="notification-bell-button" class="icon-button" aria-label="Уведомления">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.93 6 11V16L4 18V19H20V18L18 16Z"></path></svg>
+                    <span id="notifications-count" class="notification-count"></span>
+                </button>
+                <div id="notifications-dropdown" class="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Уведомления</h3>
+                    </div>
+                    <div id="notifications-list">
+                        <!-- Уведомления будут вставлены сюда -->
+                        <p class="no-notifications">Новых уведомлений нет.</p>
+                    </div>
+                </div>
+            </div>
+
             <a href="index.html">Главная</a>
+            <a href="legends.html">Зал Легенд</a>
             <a href="profile.html" id="profile-link">Мой кабинет</a>
         </nav>
     </header>
@@ -160,6 +177,7 @@
     <footer><p>&copy; 2025 Cap Checking Ratings</p></footer>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="common.js" defer></script> 
+    <script src="notifications.js" defer></script> 
     <script src="album.js" defer></script> 
 </body>
 </html>

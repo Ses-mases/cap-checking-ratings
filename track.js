@@ -94,7 +94,6 @@ async function loadTrackData(trackId) {
     if (allRatings.length > 0) {
         allRatings.sort((a, b) => (a.user_id === currentUser.id) ? -1 : (b.user_id === currentUser.id) ? 1 : 0);
         allRatings.forEach(review => {
-            // review.profiles может быть null, если профиль удален, createCommentElement это обработает
             const reviewEl = createCommentElement(review.profiles, review.score, review.review_text);
             reviewsList.appendChild(reviewEl);
         });
@@ -111,7 +110,6 @@ async function loadTrackData(trackId) {
     loadingIndicator.classList.add('hidden');
     trackContent.classList.remove('hidden');
 }
-
 
 // ОБРАБОТЧИКИ СОБЫТИЙ
 ratingForm.addEventListener('submit', async (e) => {
@@ -144,7 +142,24 @@ ratingForm.addEventListener('submit', async (e) => {
 
         ratingStatus.textContent = 'Ваша оценка сохранена!';
         ratingStatus.style.color = 'var(--success-color)';
-        await loadTrackData(currentTrackId);
+        
+        // --- ИЗМЕНЕНИЕ: ОТПРАВКА УВЕДОМЛЕНИЯ ---
+        // Получаем профиль текущего пользователя для уведомления
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('id, username')
+            .eq('id', currentUser.id)
+            .single();
+            
+        if (profile && !profileError) {
+            // Запускаем создание уведомления в фоновом режиме
+            createReviewNotification('track', currentTrackId, profile, trackTitle.textContent);
+        } else if (profileError) {
+            console.error("Не удалось получить профиль пользователя для отправки уведомления:", profileError);
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
+        await loadTrackData(currentTrackId); // Перезагружаем данные страницы
     } catch (error) {
         console.error("Ошибка сохранения оценки:", error);
         ratingStatus.textContent = 'Ошибка! Не удалось сохранить.';
@@ -153,7 +168,6 @@ ratingForm.addEventListener('submit', async (e) => {
         submitButton.disabled = false;
     }
 });
-
 
 // ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ
 async function initializePage() {
