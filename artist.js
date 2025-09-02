@@ -49,7 +49,7 @@ async function loadArtistData(artistId) {
         const [artistRes, tracksRes, albumsRes] = await Promise.all([
             supabaseClient.from('artists').select('name, avatar_url, description').eq('id', artistId).single(),
             // ИЗМЕНЕНО: Запрос теперь включает артистов для каждого трека
-            supabaseClient.from('track_artists').select('tracks(id, title, ratings(score), track_artists(is_main_artist, artists(name)))').eq('artist_id', artistId),
+            supabaseClient.from('track_artists').select('tracks(id, title, ratings(score), track_artists(is_main_artist, artists(id, name)))').eq('artist_id', artistId),
             supabaseClient.from('album_artists').select('albums(id, title, cover_art_url, album_ratings(final_score))').eq('artist_id', artistId)
         ]);
 

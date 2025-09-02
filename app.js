@@ -334,27 +334,40 @@ async function loadTopTracks() {
         // ИЗМЕНЕНО: Добавлена логика форматирования
         const finalData = top5TracksInfo.map(info => {
             const trackData = tracks.find(t => t.id === info.id);
-            const finalCoverUrl = trackData.cover_art_url || trackData.albums?.cover_art_url;
 
+            // ---- ИСПРАВЛЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ ----
+
+            // 1. Проверяем, нашлись ли данные для трека. Если нет - пропускаем.
+            if (!trackData) {
+                return null;
+            }
+
+            const finalCoverUrl = trackData.cover_art_url || trackData.albums?.cover_art_url;
             let trackTitleWithFeatures = trackData.title;
             const artists = trackData.track_artists || [];
-            if (artists.length > 1) {
-                const featuredArtists = artists
-                    .filter(a => !a.is_main_artist)
-                    .map(a => a.artists.name);
-                if (featuredArtists.length > 0) {
-                    trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
-                }
+            
+            const mainArtists = artists
+                .filter(a => a.is_main_artist)
+                .map(a => a.artists.name);
+            const featuredArtists = artists
+                .filter(a => !a.is_main_artist)
+                .map(a => a.artists.name);
+
+            if (featuredArtists.length > 0) {
+                trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
             }
             
             return {
                 ...info,
                 title: trackTitleWithFeatures,
-                artistName: artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
+                // Используем здесь только основных артистов для чистоты
+                artistName: mainArtists.join(', ') || 'Неизвестный артист',
                 coverUrl: getTransformedImageUrl(finalCoverUrl, { width: 180, height: 180, resize: 'cover' }),
                 link: `track.html?id=${info.id}`
             };
-        }).sort((a, b) => b.averageScore - a.averageScore);
+        })
+        .filter(Boolean) // 2. Отфильтровываем 'призрачные' записи, которые мы пометили как null
+        .sort((a, b) => b.averageScore - a.averageScore);
 
         renderTopReleases(topTracksContainer, finalData, 'track');
 

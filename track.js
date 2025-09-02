@@ -26,24 +26,19 @@ async function loadTrackData(trackId) {
         .select(`
             *,
             albums ( id, title, cover_art_url, release_date ),
-            ratings ( *, profiles ( username, avatar_url ) ),
+            ratings ( *, profiles ( id, username, avatar_url ) ),
             track_artists ( is_main_artist, artists ( id, name ) )
         `)
         .eq('id', trackId)
         .single();
 
     if (error || !data) {
-        console.error('Ошибка загрузки трека:', error);
-        loadingIndicator.textContent = 'Ошибка: Трек не найден.';
-        return;
+        throw new Error('Трек не найден или произошла ошибка при загрузке.');
     }
 
-    // ИЗМЕНЕНО: Логика отображения артистов
     if (data.track_artists && data.track_artists.length > 0) {
         data.track_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
-
         const featuredArtists = data.track_artists.filter(a => !a.is_main_artist);
-
         let titleHtml = data.title;
         if (featuredArtists.length > 0) {
             const featuredNames = featuredArtists.map(a => a.artists.name).join(', ');
@@ -64,11 +59,9 @@ async function loadTrackData(trackId) {
     }
 
     const releaseDate = data.release_date || data.albums?.release_date;
-    if (releaseDate) {
-        trackReleaseDate.textContent = `Дата релиза: ${new Date(releaseDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-    } else {
-        trackReleaseDate.textContent = 'Дата релиза: неизвестна';
-    }
+    trackReleaseDate.textContent = releaseDate 
+        ? `Дата релиза: ${new Date(releaseDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : 'Дата релиза: неизвестна';
 
     const finalCoverUrl = data.cover_art_url || data.albums?.cover_art_url;
     trackCover.src = getTransformedImageUrl(finalCoverUrl, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
@@ -78,17 +71,16 @@ async function loadTrackData(trackId) {
         albumLinkP.classList.remove('hidden');
     }
 
-    if (data.extra_info && data.extra_info.trim() !== '') {
+    if (data.extra_info?.trim()) {
         extraInfoP.textContent = data.extra_info;
         extraInfoSection.classList.remove('hidden');
     }
-    if (data.lyrics && data.lyrics.trim() !== '') {
+    if (data.lyrics?.trim()) {
         trackLyrics.textContent = data.lyrics;
         lyricsSection.classList.remove('hidden');
     }
 
     const allRatings = data.ratings || [];
-    
     if (allRatings.length > 0) {
         const averageScore = allRatings.reduce((sum, rating) => sum + rating.score, 0) / allRatings.length;
         averageRatingEl.textContent = averageScore.toFixed(2);
@@ -100,12 +92,9 @@ async function loadTrackData(trackId) {
 
     reviewsList.innerHTML = '';
     if (allRatings.length > 0) {
-        allRatings.sort((a, b) => {
-            if (a.user_id === currentUser.id) return -1;
-            if (b.user_id === currentUser.id) return 1;
-            return 0;
-        });
+        allRatings.sort((a, b) => (a.user_id === currentUser.id) ? -1 : (b.user_id === currentUser.id) ? 1 : 0);
         allRatings.forEach(review => {
+            // review.profiles может быть null, если профиль удален, createCommentElement это обработает
             const reviewEl = createCommentElement(review.profiles, review.score, review.review_text);
             reviewsList.appendChild(reviewEl);
         });
@@ -133,6 +122,7 @@ ratingForm.addEventListener('submit', async (e) => {
 
     if (!score || score < 1 || score > 30) {
         ratingStatus.textContent = "Введите оценку от 1 до 30.";
+        ratingStatus.style.color = 'var(--error-color)';
         scoreInput.focus();
         return;
     }
@@ -143,21 +133,17 @@ ratingForm.addEventListener('submit', async (e) => {
 
     try {
         const reviewText = document.getElementById('review-input').value.trim();
-        const upsertData = {
+        const { error } = await supabaseClient.from('ratings').upsert({
             user_id: currentUser.id,
             track_id: currentTrackId,
             score: parseInt(score),
             review_text: reviewText || null
-        };
+        }, { onConflict: 'user_id, track_id' });
 
-        const { error } = await supabaseClient.from('ratings').upsert(upsertData, { onConflict: 'user_id, track_id' });
-
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
         ratingStatus.textContent = 'Ваша оценка сохранена!';
-        ratingStatus.style.color = 'green';
+        ratingStatus.style.color = 'var(--success-color)';
         await loadTrackData(currentTrackId);
     } catch (error) {
         console.error("Ошибка сохранения оценки:", error);
@@ -171,21 +157,27 @@ ratingForm.addEventListener('submit', async (e) => {
 
 // ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ
 async function initializePage() {
-    currentTrackId = new URLSearchParams(window.location.search).get('id');
-    if (!currentTrackId) {
-        loadingIndicator.textContent = 'Ошибка: ID трека не указан.';
-        return;
-    }
+    try {
+        currentTrackId = new URLSearchParams(window.location.search).get('id');
+        if (!currentTrackId) {
+            loadingIndicator.textContent = 'Ошибка: ID трека не указан в адресе страницы.';
+            return;
+        }
 
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-    currentUser = session.user;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = 'login.html';
+            return;
+        }
+        currentUser = session.user;
 
-    await loadTrackData(currentTrackId);
+        await loadTrackData(currentTrackId);
+    } catch (error) {
+        console.error('Произошла критическая ошибка на странице трека:', error);
+        loadingIndicator.textContent = `Ошибка: ${error.message}`;
+        trackContent.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
+    }
 }
 
-// createCommentElement не меняется, поэтому я его удалил для краткости, он есть в вашем common.js
 document.addEventListener('DOMContentLoaded', initializePage);

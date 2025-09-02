@@ -82,9 +82,15 @@ function initializeProfileEditor(user) {
             
             if (currentAvatarUrl) {
                 try {
-                    oldAvatarPath = new URL(currentAvatarUrl).pathname.split('/avatars/')[1];
-                } catch(e) { 
-                    console.error("Не удалось распарсить старый URL аватара:", e); 
+                    const urlParts = new URL(currentAvatarUrl).pathname.split('/');
+                    // Ищем последнее вхождение 'avatars' и берем все, что после него
+                    const bucketIndex = urlParts.lastIndexOf('avatars');
+                    if (bucketIndex !== -1) {
+                        // Путь внутри бакета начинается со следующего элемента
+                        oldAvatarPath = urlParts.slice(bucketIndex + 1).join('/');
+                    }
+                } catch (e) {
+                    console.error("Не удалось распарсить старый URL аватара:", e);
                 }
             }
 

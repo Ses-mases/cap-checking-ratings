@@ -43,17 +43,16 @@ async function loadAlbumData(albumId) {
         .select(`
             *,
             album_artists ( is_main_artist, artists ( id, name ) ),
-            album_ratings ( *, profiles(username, avatar_url) ),
+            album_ratings ( *, profiles(id, username, avatar_url) ),
             tracks ( id, title, ratings ( score ), track_artists(is_main_artist, artists(name)) )
         `)
         .eq('id', albumId)
         .single();
 
     if (error || !data) {
-        console.error('Ошибка загрузки альбома:', error);
-        loadingIndicator.textContent = 'Ошибка: Альбом не найден.';
-        return;
+        throw new Error('Альбом не найден или произошла ошибка при загрузке.');
     }
+    
     document.title = `${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
     
@@ -67,19 +66,17 @@ async function loadAlbumData(albumId) {
         albumArtist.textContent = 'Неизвестный артист';
     }
 
-    if (data.release_date) {
-        albumReleaseDate.textContent = `Дата релиза: ${new Date(data.release_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-    } else {
-        albumReleaseDate.textContent = 'Дата релиза: неизвестна';
-    }
+    albumReleaseDate.textContent = data.release_date
+        ? `Дата релиза: ${new Date(data.release_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : 'Дата релиза: неизвестна';
 
     albumCover.src = getTransformedImageUrl(data.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
-    if (data.extra_info && data.extra_info.trim() !== '') {
+    if (data.extra_info?.trim()) {
         extraInfoP.textContent = data.extra_info;
         extraInfoSection.classList.remove('hidden');
     }
-    const expertRatings = data.album_ratings || [];
     
+    const expertRatings = data.album_ratings || [];
     if (expertRatings.length > 0) {
         const avgExpertScore = expertRatings.reduce((acc, r) => acc + r.final_score, 0) / expertRatings.length;
         expertRatingEl.textContent = avgExpertScore.toFixed(2);
@@ -91,38 +88,28 @@ async function loadAlbumData(albumId) {
 
     const allTrackRatings = data.tracks.flatMap(track => track.ratings || []);
     if (allTrackRatings.length > 0) {
-        const sum = allTrackRatings.reduce((acc, r) => acc + r.score, 0);
-        const avg = sum / allTrackRatings.length;
+        const avg = allTrackRatings.reduce((acc, r) => acc + r.score, 0) / allTrackRatings.length;
         trackRatingEl.textContent = avg.toFixed(2);
         trackRatingEl.style.color = getScoreColor(avg);
     } else {
         trackRatingEl.textContent = '-.--';
         trackRatingEl.style.color = getScoreColor(null);
     }
-    trackList.innerHTML = '';
     
-    // ИЗМЕНЕНО: Добавлена логика форматирования названия трека
+    trackList.innerHTML = '';
     data.tracks.forEach(track => {
         const trackEl = document.createElement('a');
         trackEl.className = 'track-list-item';
         trackEl.href = `track.html?id=${track.id}`;
-
         let trackTitleWithFeatures = track.title;
         const artists = track.track_artists || [];
         if (artists.length > 1) {
-            const featuredArtists = artists
-                .filter(a => !a.is_main_artist)
-                .map(a => a.artists.name);
+            const featuredArtists = artists.filter(a => !a.is_main_artist).map(a => a.artists.name);
             if (featuredArtists.length > 0) {
                 trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
             }
         }
-
-        let avgScore = null;
-        if(track.ratings.length > 0) {
-            const sum = track.ratings.reduce((acc, r) => acc + r.score, 0);
-            avgScore = sum / track.ratings.length;
-        }
+        let avgScore = track.ratings.length > 0 ? track.ratings.reduce((acc, r) => acc + r.score, 0) / track.ratings.length : null;
         trackEl.innerHTML = `
             <span class="track-title">${trackTitleWithFeatures}</span>
             <span class="track-avg-score" style="color: ${getScoreColor(avgScore)}">
@@ -140,17 +127,15 @@ async function loadAlbumData(albumId) {
     } else {
         commentsList.innerHTML = '<p>Рецензий на альбом пока нет.</p>';
     }
+    
     loadingIndicator.classList.add('hidden');
     albumContent.classList.remove('hidden');
 }
 
+// ... (остальные функции модального окна остаются без изменений) ...
+
 async function loadUserAlbumRating() {
-    const { data, error } = await supabaseClient.from('album_ratings')
-        .select('*')
-        .eq('album_id', currentAlbumId)
-        .eq('user_id', currentUser.id)
-        .single();
-    
+    const { data } = await supabaseClient.from('album_ratings').select('*').eq('album_id', currentAlbumId).eq('user_id', currentUser.id).single();
     if (data) {
         rarityInput.value = data.rarity;
         integrityInput.value = data.integrity;
@@ -158,13 +143,11 @@ async function loadUserAlbumRating() {
         qualityInput.value = data.quality;
         influenceInput.value = data.influence;
         reviewInput.value = data.review_text || '';
-        
         rarityValueSpan.textContent = data.rarity;
         integrityValueSpan.textContent = data.integrity;
         depthValueSpan.textContent = data.depth;
         qualityValueSpan.textContent = data.quality;
         influenceValueSpan.textContent = data.influence;
-        
         calculateFinalScore();
     }
 }
@@ -178,41 +161,15 @@ function initializeRatingModal() {
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) modalOverlay.classList.remove('is-visible');
     });
-
     albumRatingForm.addEventListener('input', (e) => {
         if (e.target.id === 'rarity-input') rarityValueSpan.textContent = e.target.value;
         if (e.target.id === 'integrity-input') integrityValueSpan.textContent = e.target.value;
         if (e.target.id === 'depth-input') depthValueSpan.textContent = e.target.value;
         if (e.target.id === 'quality-input') qualityValueSpan.textContent = e.target.value;
         if (e.target.id === 'influence-input') influenceValueSpan.textContent = e.target.value;
-        
         calculateFinalScore();
     });
-
     albumRatingForm.addEventListener('submit', handleRatingSubmit);
-
-    const tooltipIcons = document.querySelectorAll('.tooltip-icon');
-    tooltipIcons.forEach(icon => {
-        icon.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            
-            const tooltipText = icon.nextElementSibling;
-            
-            document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
-                if (visibleTooltip !== tooltipText) {
-                    visibleTooltip.classList.remove('is-visible');
-                }
-            });
-            
-            tooltipText.classList.toggle('is-visible');
-        });
-    });
-
-    albumRatingForm.addEventListener('click', () => {
-        document.querySelectorAll('.tooltip-text.is-visible').forEach(visibleTooltip => {
-            visibleTooltip.classList.remove('is-visible');
-        });
-    });
 }
 
 function calculateFinalScore() {
@@ -221,7 +178,6 @@ function calculateFinalScore() {
     const depth = parseInt(depthInput.value);
     const quality = parseFloat(qualityInput.value);
     const influence = parseFloat(influenceInput.value);
-    
     const finalScore = (rarity + integrity + depth) * (quality / 100) * influence;
     finalScoreDisplay.textContent = finalScore.toFixed(2);
     finalScoreDisplay.style.color = getScoreColor(finalScore);
@@ -229,14 +185,13 @@ function calculateFinalScore() {
 
 async function handleRatingSubmit(e) {
     e.preventDefault();
-    
     submitAlbumRatingBtn.disabled = true;
     albumRatingStatus.textContent = "Сохранение...";
     albumRatingStatus.style.color = 'var(--text-color-secondary)';
 
     try {
         const finalScore = parseFloat(finalScoreDisplay.textContent);
-        const upsertData = {
+        const { error } = await supabaseClient.from('album_ratings').upsert({
             album_id: currentAlbumId,
             user_id: currentUser.id,
             rarity: parseInt(rarityInput.value),
@@ -246,23 +201,15 @@ async function handleRatingSubmit(e) {
             influence: parseFloat(influenceInput.value),
             final_score: finalScore,
             review_text: reviewInput.value.trim() || null
-        };
-
-        const { error } = await supabaseClient.from('album_ratings').upsert(upsertData, { onConflict: 'album_id, user_id' });
-
-        if (error) {
-            throw error;
-        }
-
+        }, { onConflict: 'album_id, user_id' });
+        if (error) throw error;
         albumRatingStatus.textContent = "Ваша оценка сохранена!";
-        albumRatingStatus.style.color = 'green';
-
+        albumRatingStatus.style.color = 'var(--success-color)';
         setTimeout(() => {
             modalOverlay.classList.remove('is-visible');
             albumRatingStatus.textContent = '';
             loadAlbumData(currentAlbumId);
-        }, 2000);
-
+        }, 1500);
     } catch (error) {
         console.error("Ошибка сохранения оценки:", error);
         albumRatingStatus.textContent = "Произошла ошибка.";
@@ -273,22 +220,27 @@ async function handleRatingSubmit(e) {
 }
 
 async function initializePage() {
-    currentAlbumId = new URLSearchParams(window.location.search).get('id');
-    if (!currentAlbumId) {
-        loadingIndicator.textContent = 'Ошибка: ID альбома не указан.';
-        return;
+    try {
+        currentAlbumId = new URLSearchParams(window.location.search).get('id');
+        if (!currentAlbumId) {
+            throw new Error('ID альбома не указан в адресе страницы.');
+        }
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = 'login.html';
+            return;
+        }
+        currentUser = session.user;
+        await loadAlbumData(currentAlbumId);
+        initializeRatingModal();
+        calculateFinalScore(); 
+    } catch(error) {
+        console.error('Произошла критическая ошибка на странице альбома:', error);
+        loadingIndicator.textContent = `Ошибка: ${error.message}`;
+        albumContent.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
     }
-
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-    currentUser = session.user;
-
-    await loadAlbumData(currentAlbumId);
-    initializeRatingModal();
-    calculateFinalScore(); 
 }
 
 document.addEventListener('DOMContentLoaded', initializePage);
+

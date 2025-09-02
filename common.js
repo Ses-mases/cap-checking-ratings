@@ -50,6 +50,11 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
     
     const username = profile?.username || 'Аноним';
 
+    // ИЗМЕНЕНО: Имя пользователя теперь является ссылкой на его публичный профиль
+    const authorHtml = profile?.id
+        ? `<a href="user.html?id=${profile.id}" class="review-item-author">${username}</a>`
+        : `<span class="review-item-author">${username}</span>`;
+
     const scoreFormatted = Number(score).toFixed(2);
     const reviewText = text || 'Пользователь не оставил рецензию.';
 
@@ -57,7 +62,7 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
         <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar" loading="lazy">
         <div class="review-item-body">
             <div class="review-item-header">
-                <span class="review-item-author">${username}</span>
+                ${authorHtml}
                 <span class="review-item-score">Оценка: <strong style="color: ${getScoreColor(scoreFormatted, scoreMax)}">${scoreFormatted} / ${scoreMax}</strong></span>
             </div>
             <p class="review-item-text">${reviewText}</p>
@@ -119,7 +124,6 @@ if (searchInput && searchResultsContainer) {
             const artistNameText = getArtistNames(item);
             const artistName = artistNameText ? `<span class="search-item-artist">${artistNameText}</span>` : '';
 
-            // ИЗМЕНЕНО: Логика форматирования названия трека
             let title = item.name || item.title;
             if (type === 'track') {
                 const trackArtists = item.track_artists || [];
@@ -168,7 +172,6 @@ if (searchInput && searchResultsContainer) {
         searchResultsContainer.style.display = 'block';
         searchResultsContainer.innerHTML = '<div class="search-no-results">Идет поиск...</div>';
         try {
-            // ИЗМЕНЕНО: Запрос треков теперь включает артистов
             const [artistsRes, albumsRes, tracksRes] = await Promise.all([
                 supabaseClient.from('artists').select('id, name').ilike('name', `%${query}%`).limit(3),
                 supabaseClient.from('albums').select('id, title, album_artists(artists(name))').ilike('title', `%${query}%`).limit(5),
