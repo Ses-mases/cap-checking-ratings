@@ -97,6 +97,8 @@ async function loadAlbumData(albumId) {
     }
     
     trackList.innerHTML = '';
+    // Сортируем треки по ID для сохранения оригинального порядка
+    data.tracks.sort((a, b) => a.id - b.id);
     data.tracks.forEach(track => {
         const trackEl = document.createElement('a');
         trackEl.className = 'track-list-item';
