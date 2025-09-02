@@ -237,6 +237,10 @@ if (notificationsContainer) {
             return;
         }
 
+        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+        const lastReadTimestamp = parseInt(sessionStorage.getItem('notifications_marked_read_timestamp') || '0');
+        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
+
         notifications.forEach(notif => {
             const creator = notif.creator_user_id; // В Supabase это будет объект profiles
             const avatarUrl = getTransformedImageUrl(creator?.avatar_url, { width: 80, height: 80, resize: 'cover' }) || 'https://via.placeholder.com/40';
@@ -244,9 +248,14 @@ if (notificationsContainer) {
             const item = document.createElement('a');
             item.href = notif.link_url || '#';
             item.className = 'notification-item';
-            if (!notif.is_read) {
+            
+            // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+            // Считаем уведомление прочитанным, если оно помечено в БД ИЛИ если оно старше последней отметки о прочтении
+            const isEffectivelyRead = notif.is_read || new Date(notif.created_at).getTime() < lastReadTimestamp;
+            if (!isEffectivelyRead) {
                 item.classList.add('is-unread');
             }
+            // --- ИЗМЕНЕНИЕ КОНЕЦ ---
             
             item.innerHTML = `
                 <img src="${avatarUrl}" alt="Аватар" class="notification-avatar">
@@ -261,7 +270,15 @@ if (notificationsContainer) {
 
     // Функция для обновления счетчика непрочитанных
     function updateUnreadCount(notifications) {
-        const unread = notifications.filter(n => !n.is_read);
+        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+        const lastReadTimestamp = parseInt(sessionStorage.getItem('notifications_marked_read_timestamp') || '0');
+
+        const unread = notifications.filter(n => {
+            const isOlderThanLastRead = new Date(n.created_at).getTime() < lastReadTimestamp;
+            return !n.is_read && !isOlderThanLastRead;
+        });
+        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
+
         unreadNotificationsIds = unread.map(n => n.id);
 
         if (unread.length > 0) {
@@ -275,6 +292,11 @@ if (notificationsContainer) {
     // Функция для пометки уведомлений как прочитанных
     async function markNotificationsAsRead() {
         if (unreadNotificationsIds.length === 0) return;
+        
+        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+        // Запоминаем текущее время ДО отправки запроса
+        const now = Date.now();
+        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
 
         const { error } = await supabaseClient
             .from('notifications')
@@ -284,6 +306,11 @@ if (notificationsContainer) {
         if (error) {
             console.error("Ошибка при обновлении статуса уведомлений:", error);
         } else {
+            // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+            // При успехе сохраняем метку времени в sessionStorage
+            sessionStorage.setItem('notifications_marked_read_timestamp', now);
+            // --- ИЗМЕНЕНИЕ КОНЕЦ ---
+
             // Убираем счетчик сразу, не дожидаясь перезагрузки страницы
             unreadNotificationsIds = [];
             countBadge.classList.remove('is-visible');
