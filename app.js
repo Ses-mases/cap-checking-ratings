@@ -428,7 +428,6 @@ async function loadTopAlbums() {
         }
 
         const top5AlbumIds = top5AlbumsInfo.map(a => a.id);
-        // ИЗМЕНЕНО: Запрос артистов для альбомов
         const { data: albums, error: albumsError } = await supabaseClient
             .from('albums')
             .select('id, title, cover_art_url, album_artists(artists(name))')
@@ -436,7 +435,6 @@ async function loadTopAlbums() {
 
         if (albumsError) throw albumsError;
         
-        // ИЗМЕНЕНО: Сборка имен артистов
         const finalData = top5AlbumsInfo.map(info => {
             const albumData = albums.find(a => a.id === info.id);
             return {
@@ -455,7 +453,6 @@ async function loadTopAlbums() {
         topAlbumsContainer.innerHTML = '<p>Не удалось загрузить данные.</p>';
     }
 }
-// ... (функция checkAuthAndLoadContent и слушатель DOMContentLoaded остаются без изменений) ...
 
 async function checkAuthAndLoadContent() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -467,11 +464,21 @@ async function checkAuthAndLoadContent() {
         if (profileLink) {
              profileLink.style.display = 'inline';
         }
-        await Promise.all([
+
+        const results = await Promise.allSettled([
             loadRecentReleases(),
             loadTopTracks(),
             loadTopAlbums()
         ]);
+
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                const failedFunctionName = ['loadRecentReleases', 'loadTopTracks', 'loadTopAlbums'][index];
+                console.error(`Ошибка при выполнении ${failedFunctionName}:`, result.reason);
+                // На этом этапе можно отобразить сообщение об ошибке в соответствующем блоке
+            }
+        });
+        
         handleAnnouncements();
         initializeScrollers();
     }
