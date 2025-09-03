@@ -1,4 +1,3 @@
-/* 1. ГЛОБАЛЬНЫЕ СТИЛИ И ПЕРЕМЕННЫЕ */
 :root {
     --bg-color: #ffffff;
     --subtle-bg: #f8f9fa;
@@ -557,6 +556,31 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 }
 .legend-score strong {
     color: var(--success-color);
+}
+
+/* СТИЛИ ДЛЯ FAQ */
+#faq-section {
+    max-width: 800px;
+    margin: auto;
+}
+.faq-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.faq-item:last-of-type {
+    border-bottom: none;
+}
+.faq-item h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.3em;
+}
+.faq-item p {
+    line-height: 1.7;
+    color: var(--text-color-secondary);
+}
+.faq-item p strong {
+    color: var(--text-color);
+    font-weight: 500;
 }
 
 
