@@ -42,7 +42,8 @@ function initializeProfileEditor(user) {
                 originalUsername = data.username || 'Имя не указано';
                 currentAvatarUrl = data.avatar_url;
                 
-                originalAvatarSrc = getTransformedImageUrl(data.avatar_url, { width: 240, height: 240, resize: 'cover' }) || 'https://via.placeholder.com/150';
+                const finalAvatarUrl = data.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+                originalAvatarSrc = getTransformedImageUrl(finalAvatarUrl, { width: 240, height: 240, resize: 'cover' });
                 
                 profileUsername.textContent = originalUsername;
                 profileAvatar.src = originalAvatarSrc;

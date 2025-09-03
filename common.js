@@ -61,11 +61,11 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
     const element = document.createElement('div');
     element.className = 'review-item';
     
-    const avatarUrl = getTransformedImageUrl(profile?.avatar_url, { width: 96, height: 96, resize: 'cover' }) || 'https://via.placeholder.com/48';
+    const finalAvatarUrl = profile?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+    const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 96, height: 96, resize: 'cover' });
     
     const username = profile?.username || 'Аноним';
 
-    // ИЗМЕНЕНО: Имя пользователя теперь является ссылкой на его публичный профиль
     const authorHtml = profile?.id
         ? `<a href="user.html?id=${profile.id}" class="review-item-author">${username}</a>`
         : `<span class="review-item-author">${username}</span>`;
@@ -243,7 +243,8 @@ if (notificationsContainer) {
 
         notifications.forEach(notif => {
             const creator = notif.creator_user_id; // В Supabase это будет объект profiles
-            const avatarUrl = getTransformedImageUrl(creator?.avatar_url, { width: 80, height: 80, resize: 'cover' }) || 'https://via.placeholder.com/40';
+            const finalAvatarUrl = creator?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+            const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 80, height: 80, resize: 'cover' });
             
             const item = document.createElement('a');
             item.href = notif.link_url || '#';

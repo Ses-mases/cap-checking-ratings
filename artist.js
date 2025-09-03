@@ -61,7 +61,8 @@ async function loadArtistData(artistId) {
         document.title = `${artistData.name} | Cap Checking Ratings`;
         artistName.textContent = artistData.name;
         artistDescription.textContent = artistData.description || 'Описание отсутствует.';
-        artistAvatar.src = getTransformedImageUrl(artistData.avatar_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
+        const finalAvatarUrl = artistData.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+        artistAvatar.src = getTransformedImageUrl(finalAvatarUrl, { width: 500, height: 500, resize: 'cover' });
         
         const rawTracks = tracksRes.data.map(item => item.tracks).filter(Boolean);
         const tracksWithAvgScore = rawTracks.map(track => {

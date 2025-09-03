@@ -140,6 +140,7 @@ input:focus, textarea:focus {
 .status-message.success { color: var(--success-color); }
 
 #search-container {
+    position: relative;
     flex: 1;
     display: flex;
     justify-content: flex-start;
@@ -284,7 +285,8 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 
 /* 4. СТИЛИ ДЛЯ КОНКРЕТНЫХ СТРАНИЦ */
 
-#recent-tracks-section .card-link {
+#recent-tracks-section .card-link,
+#artist-albums-section .card-link {
     flex: 0 0 280px;
     height: 280px;
     border-radius: var(--radius-lg);
@@ -297,11 +299,13 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     box-shadow: var(--shadow-sm);
 }
 
-#recent-tracks-section .card-link:hover {
+#recent-tracks-section .card-link:hover,
+#artist-albums-section .card-link:hover {
     box-shadow: var(--shadow-md);
 }
 
-#recent-tracks-section .card {
+#recent-tracks-section .card,
+#artist-albums-section .card {
     border: none;
     box-shadow: none;
     background-color: transparent;
@@ -312,24 +316,28 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     overflow: hidden;
 }
 
-#recent-tracks-section .card-link:hover .card {
+#recent-tracks-section .card-link:hover .card,
+#artist-albums-section .card-link:hover .card {
     transform: none;
     box-shadow: none;
     border-color: transparent;
 }
 
-#recent-tracks-section .card img {
+#recent-tracks-section .card img,
+#artist-albums-section .card img {
     height: 100%;
     width: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
 }
 
-#recent-tracks-section .card-link:hover .card img {
+#recent-tracks-section .card-link:hover .card img,
+#artist-albums-section .card-link:hover .card img {
     transform: scale(1.1);
 }
 
-#recent-tracks-section .card-body {
+#recent-tracks-section .card-body,
+#artist-albums-section .card-body {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -340,7 +348,8 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     white-space: normal;
 }
 
-#recent-tracks-section .card-body h3 {
+#recent-tracks-section .card-body h3,
+#artist-albums-section .card-body h3 {
     font-size: 1.3em;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
@@ -352,7 +361,8 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
     text-overflow: initial;
 }
 
-#recent-tracks-section .card-body p {
+#recent-tracks-section .card-body p,
+#artist-albums-section .card-body p {
     font-size: 0.9em;
     color: white;
     opacity: 0.8;
@@ -511,7 +521,7 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 .artist-avatar { border-radius: var(--radius-full); }
 .artist-description { margin-top: 1rem; color: var(--text-color-secondary); line-height: 1.6; }
 #artist-albums-section .scroll-wrapper { margin-top: 1rem; }
-#artist-albums-section .card-link { flex: 0 0 220px; }
+/* #artist-albums-section .card-link { flex: 0 0 220px; } - Этот стиль больше не нужен, так как он определяется общим правилом выше. */
 
 
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; outline: none; margin-top: 0.5rem; padding: 0; }
@@ -598,14 +608,18 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     .announcement-overlay-content { padding: 1.5rem; }
     #announcement-title { font-size: 1.6em; }
     
-    #recent-tracks-section .card-link { flex: 0 0 200px; height: 200px; }
+    #recent-tracks-section .card-link,
+    #artist-albums-section .card-link { 
+        flex: 0 0 200px; 
+        height: 200px; 
+    }
+
     .top-card-link { flex: 0 0 300px; }
     .top-card-header { padding: 0.75rem; }
     .top-card-body { padding: 0 0.75rem 0.75rem; }
     .top-card-cover { width: 80px; height: 80px; }
     .top-card-title { font-size: 1.1em; }
     .top-card-score { font-size: 1.2em; }
-    #artist-albums-section .card-link { flex: 0 0 180px; }
 
     #legends-grid-container {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -614,7 +628,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 
 }
 
-/* 5. СТИЛИ УВЕДОМЛЕНИЙ (добавьте в конец style.css) */
+/* 5. СТИЛИ УВЕДОМЛЕНИЙ */
 #notifications-container {
     position: relative;
 }

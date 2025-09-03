@@ -24,7 +24,8 @@ async function loadUserData(userId) {
 
     document.title = `${profileData.username || 'Пользователь'} | Cap Checking Ratings`;
     profileUsername.textContent = profileData.username || 'Имя не указано';
-    profileAvatar.src = getTransformedImageUrl(profileData.avatar_url, { width: 240, height: 240, resize: 'cover' }) || 'https://via.placeholder.com/150';
+    const finalAvatarUrl = profileData.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+    profileAvatar.src = getTransformedImageUrl(finalAvatarUrl, { width: 240, height: 240, resize: 'cover' });
 
     renderTrackRatings(trackRatingsData);
     renderAlbumRatings(albumRatingsData);
