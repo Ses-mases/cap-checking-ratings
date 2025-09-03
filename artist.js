@@ -3,6 +3,7 @@ const loadingIndicator = document.getElementById('loading-indicator');
 const artistContent = document.getElementById('artist-content');
 const artistAvatar = document.getElementById('artist-avatar');
 const artistName = document.getElementById('artist-name');
+const artistRatingContainer = document.getElementById('artist-rating-container');
 const artistDescription = document.getElementById('artist-description');
 const artistTracksList = document.getElementById('artist-tracks-list');
 const showAllTracksBtn = document.getElementById('show-all-tracks-btn');
@@ -47,13 +48,15 @@ function initializeAlbumScroller() {
 async function loadArtistData(artistId) {
     try {
         const [artistRes, tracksRes, albumsRes] = await Promise.all([
-            supabaseClient.from('artists').select('name, avatar_url, description').eq('id', artistId).single(),
-            // ИЗМЕНЕНО: Запрос теперь включает артистов для каждого трека
+            supabaseClient.from('artists').select('*').eq('id', artistId).single(),
             supabaseClient.from('track_artists').select('tracks(id, title, ratings(score), track_artists(is_main_artist, artists(id, name)))').eq('artist_id', artistId),
             supabaseClient.from('album_artists').select('albums(id, title, cover_art_url, album_ratings(final_score))').eq('artist_id', artistId)
         ]);
 
-        if (artistRes.error) throw artistRes.error;
+        if (artistRes.error || !artistRes.data) {
+            console.error('Ошибка при загрузке данных артиста:', artistRes.error);
+            throw new Error('Артист с таким ID не найден в базе данных.');
+        }
         if (tracksRes.error) throw tracksRes.error;
         if (albumsRes.error) throw albumsRes.error;
 
@@ -63,6 +66,22 @@ async function loadArtistData(artistId) {
         artistDescription.textContent = artistData.description || 'Описание отсутствует.';
         const finalAvatarUrl = artistData.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
         artistAvatar.src = getTransformedImageUrl(finalAvatarUrl, { width: 500, height: 500, resize: 'cover' });
+        
+        // --- НАЧАЛО ИЗМЕНЕННОГО БЛОКА ---
+        if (artistData.rating !== null && artistData.rating !== undefined) {
+            // 1. Округляем рейтинг до одного знака после запятой
+            const roundedRating = parseFloat(artistData.rating).toFixed(1);
+            
+            // 2. Получаем цвет, как и раньше
+            const ratingColor = getScoreColor(artistData.rating, 100);
+
+            // 3. Создаем HTML с инвертированными цветами и новым текстом
+            artistRatingContainer.innerHTML = `
+                <div class="artist-rating" style="background-color: ${ratingColor}; color: white; border-color: transparent;">
+                    Рейтинг: <strong>${roundedRating}</strong>
+                </div>
+            `;
+        }
         
         const rawTracks = tracksRes.data.map(item => item.tracks).filter(Boolean);
         const tracksWithAvgScore = rawTracks.map(track => {
@@ -74,7 +93,6 @@ async function loadArtistData(artistId) {
 
         artistTracksList.innerHTML = '';
         if (tracksWithAvgScore.length > 0) {
-            // ИЗМЕНЕНО: Добавлена логика форматирования названия
             tracksWithAvgScore.forEach((track, index) => {
                 const trackEl = document.createElement('a');
                 trackEl.className = 'track-list-item';
@@ -85,10 +103,9 @@ async function loadArtistData(artistId) {
 
                 let trackTitleWithFeatures = track.title;
                 const artists = track.track_artists || [];
-                // Мы на странице ОДНОГО из артистов, поэтому показываем фиты с ДРУГИМИ
                 if (artists.length > 1) {
                     const featuredArtists = artists
-                        .filter(a => a.artists.id != artistId) // Показываем только других артистов
+                        .filter(a => a.artists.id != artistId)
                         .map(a => a.artists.name);
                     if (featuredArtists.length > 0) {
                         trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
@@ -144,8 +161,8 @@ async function loadArtistData(artistId) {
         artistContent.classList.remove('hidden');
 
     } catch (error) {
-        console.error('Ошибка загрузки данных артиста:', error);
-        loadingIndicator.textContent = 'Ошибка: Артист не найден.';
+        console.error('Полная ошибка загрузки страницы артиста:', error);
+        loadingIndicator.textContent = 'Ошибка: Не удалось загрузить данные артиста.';
     }
 }
 

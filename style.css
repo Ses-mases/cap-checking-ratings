@@ -759,3 +759,14 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
         width: auto;
     }
 }
+
+.artist-rating {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    border-radius: var(--radius-pill);
+    font-size: 1.1em;
+    font-weight: 500;
+    line-height: 1;
+    border: 1px solid currentColor;
+}
