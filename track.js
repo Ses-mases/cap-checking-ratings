@@ -143,23 +143,20 @@ ratingForm.addEventListener('submit', async (e) => {
         ratingStatus.textContent = 'Ваша оценка сохранена!';
         ratingStatus.style.color = 'var(--success-color)';
         
-        // --- ИЗМЕНЕНИЕ: ОТПРАВКА УВЕДОМЛЕНИЯ ---
-        // Получаем профиль текущего пользователя для уведомления
-        const { data: profile, error: profileError } = await supabaseClient
+        // --- ВЫЗОВ ПРОВЕРКИ ДОСТИЖЕНИЙ ---
+        checkAndNotifyAchievements(currentUser.id);
+        
+        const { data: profile } = await supabaseClient
             .from('profiles')
             .select('id, username')
             .eq('id', currentUser.id)
             .single();
             
-        if (profile && !profileError) {
-            // Запускаем создание уведомления в фоновом режиме
+        if (profile) {
             createReviewNotification('track', currentTrackId, profile, trackTitle.textContent);
-        } else if (profileError) {
-            console.error("Не удалось получить профиль пользователя для отправки уведомления:", profileError);
         }
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
-        await loadTrackData(currentTrackId); // Перезагружаем данные страницы
+        await loadTrackData(currentTrackId);
     } catch (error) {
         console.error("Ошибка сохранения оценки:", error);
         ratingStatus.textContent = 'Ошибка! Не удалось сохранить.';

@@ -1,5 +1,9 @@
-async function createReviewNotification(contentType, contentId, reviewerProfile) {
-    if (!contentType || !contentId || !reviewerProfile) return;
+async function createReviewNotification(contentType, contentId, reviewerProfile, contentTitle) {
+    // Добавлена проверка на наличие всех необходимых данных
+    if (!contentType || !contentId || !reviewerProfile || !contentTitle) {
+        console.error("Недостаточно данных для создания уведомления.");
+        return;
+    }
 
     try {
         // 1. Определяем, из какой таблицы брать артистов
@@ -21,7 +25,7 @@ async function createReviewNotification(contentType, contentId, reviewerProfile)
         // 3. Находим профили пользователей, связанные с этими артистами
         const { data: artistProfiles, error: profileError } = await supabaseClient
             .from('artists')
-            .select('user_id, name')
+            .select('user_id') // Имя артиста здесь больше не нужно
             .in('id', artistIds)
             .not('user_id', 'is', null); // Выбираем только тех, у кого есть связанный профиль
 
@@ -37,7 +41,10 @@ async function createReviewNotification(contentType, contentId, reviewerProfile)
                     recipient_user_id: artist.user_id,
                     creator_user_id: reviewerProfile.id,
                     type: `new_${contentType}_review`,
-                    content: `Пользователь ${reviewerProfile.username} оставил(а) рецензию на ваш ${contentName} «${artist.name}».`,
+                    // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+                    // Используем contentTitle вместо artist.name для корректного текста
+                    content: `Пользователь <strong>${reviewerProfile.username}</strong> оставил(а) рецензию на ваш ${contentName} <strong>«${contentTitle}»</strong>.`,
+                    // --- ИЗМЕНЕНИЕ КОНЕЦ ---
                     link_url: `${contentType}.html?id=${contentId}`
                 };
             });

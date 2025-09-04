@@ -3,6 +3,165 @@ const SUPABASE_URL = 'https://texytgcdtafeejqxftqj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleHl0Z2NkdGFmZWVqcXhmdHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NTM2MjUsImV4cCI6MjA3MjEyOTYyNX0.1hWMcDYm4JdWjDKTvS_7uBatorByAK6RtN9LYljpacc';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// --- ДАННЫЕ О ДОСТИЖЕНИЯХ ---
+const achievementsData = [
+    // --- ПРОСТЫЕ ---
+    { id: 'debutant', group: 'simple', icon: '🏆', title: 'Дебютант', description: 'Оставить свою первую оценку для любого трека или альбома.' },
+    { id: 'album_lover', group: 'simple', icon: '💿', title: 'Альбомовед', description: 'Оценить свой первый альбом.' },
+    { id: 'self_expression', group: 'simple', icon: '🎨', title: 'Самовыражение', description: 'Установить и имя пользователя, и аватар в профиле.' },
+    { id: 'harsh', group: 'simple', icon: '🌶️', title: 'Жёстко...', description: 'Поставить оценку ниже 10 баллов.' },
+    { id: 'high_score', group: 'simple', icon: '🌟', title: 'Высший балл', description: 'Поставить любому релизу оценку 28 или выше.' },
+    { id: 'classic', group: 'simple', icon: '📜', title: 'Классика', description: 'Оценить релиз, вышедший до 2010 года.' },
+    { id: 'hall_of_fame', group: 'simple', icon: '🏛️', title: 'Зал славы', description: 'Оценить альбом, находящийся в "Зале Легенд".' },
+    // --- СЛОЖНЫЕ ---
+    { id: 'critic', group: 'complex', icon: '✍️', title: 'Критик', description: 'Написать 10 развернутых рецензий.' },
+    { id: 'music_lover', group: 'complex', icon: '🎧', title: 'Меломан', description: 'Оценить 50 разных треков.' },
+    { id: 'connoisseur', group: 'complex', icon: '🧐', title: 'Ценитель', description: 'Оценить 10 релизов (треков или альбомов) одного артиста.' },
+    { id: 'spectrum', group: 'complex', icon: '📊', title: 'Спектр', description: 'Иметь оценки в диапазонах: ниже 10, 15-20 и выше 25.' },
+    { id: 'discography', group: 'complex', icon: '📚', title: 'Дискография', description: 'Оценить 3 разных альбома одного исполнителя.' },
+    { id: 'fresh', group: 'complex', icon: '✨', title: 'Свежак', description: 'Оценить релиз в течение 7 дней после его выхода.' },
+    { id: 'essayist', group: 'complex', icon: '🖋️', title: 'Эссеист', description: 'Написать рецензию длиной более 500 символов.' },
+    { id: 'time_machine', group: 'complex', icon: '⏳', title: 'Машина Времени', description: 'Оценить релизы из 4-х разных десятилетий.' },
+    // --- ЛЕГЕНДАРНЫЕ ---
+    { id: 'flawless', group: 'legendary', icon: '💎', title: 'Безупречно', description: 'Поставить оценку 30/30 любому треку.' },
+    { id: 'cover_to_cover', group: 'legendary', icon: '📖', title: 'От корки до корки', description: 'Оценить все треки на одном альбоме (от 8 треков).', },
+    { id: 'gold_standard', group: 'legendary', icon: '⚜️', title: 'Золотой стандарт', description: 'Иметь среднюю оценку > 20 при 100+ оцененных релизах.' },
+    { id: 'legacy_keeper', group: 'legendary', icon: '👑', title: 'Хранитель наследия', description: 'Оценить 5 разных альбомов из "Зала Легенд".' },
+    { id: 'encyclopedist', group: 'legendary', icon: '🌍', title: 'Энциклопедист', description: 'Оценить релизы от 50 разных исполнителей.' }
+];
+
+// --- ПРОВЕРКА И УВЕДОМЛЕНИЕ О ДОСТИЖЕНИЯХ ---
+async function checkAndNotifyAchievements(userId) {
+    const { data: earnedAchievements, error: earnedError } = await supabaseClient
+        .from('user_achievements')
+        .select('achievement_id')
+        .eq('user_id', userId);
+
+    if (earnedError) {
+        console.error("Не удалось получить заработанные достижения:", earnedError);
+        return;
+    }
+    const earnedIds = new Set(earnedAchievements.map(a => a.achievement_id));
+    const stats = await fetchUserStatsForAchievements(userId);
+    if (!stats) return;
+
+    const newlyEarned = [];
+    const achievementCheckFunctions = getAchievementCheckFunctions();
+    achievementsData.forEach(ach => {
+        if (!earnedIds.has(ach.id)) {
+            if (achievementCheckFunctions[ach.id] && achievementCheckFunctions[ach.id](stats)) {
+                newlyEarned.push(ach);
+            }
+        }
+    });
+
+    if (newlyEarned.length > 0) {
+        console.log(`Новые достижения (${newlyEarned.length}):`, newlyEarned.map(a=>a.title).join(', '));
+        const userAchievementsPayload = newlyEarned.map(ach => ({ user_id: userId, achievement_id: ach.id }));
+        const notificationsPayload = newlyEarned.map(ach => ({
+            recipient_user_id: userId,
+            type: 'achievement_unlocked',
+            content: `Вы получили новое достижение: <strong>${ach.title}</strong>!`,
+            link_url: 'profile.html'
+        }));
+
+        const [{ error: achError }, { error: notifError }] = await Promise.all([
+            supabaseClient.from('user_achievements').insert(userAchievementsPayload),
+            supabaseClient.from('notifications').insert(notificationsPayload)
+        ]);
+
+        if (achError) console.error("Ошибка сохранения достижений:", achError);
+        if (notifError) console.error("Ошибка создания уведомлений о достижениях:", notifError);
+    }
+}
+
+async function fetchUserStatsForAchievements(userId) {
+     try {
+        const defaultAvatarUrl = 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
+        const [profileRes, trackRatingsRes, albumRatingsRes, legendaryAlbumsRes] = await Promise.all([
+            supabaseClient.from('profiles').select('username, avatar_url').eq('id', userId).single(),
+            supabaseClient.from('ratings').select('score, review_text, created_at, tracks!inner(id, release_date, track_artists!inner(artist_id))').eq('user_id', userId),
+            supabaseClient.from('album_ratings').select('album_id, final_score, review_text, created_at, albums!inner(id, release_date, album_artists!inner(artist_id), tracks(id))').eq('user_id', userId),
+            supabaseClient.from('album_ratings').select('album_id, final_score')
+        ]);
+
+        const profileData = { username: profileRes.data?.username, avatar_url: profileRes.data?.avatar_url !== defaultAvatarUrl ? profileRes.data?.avatar_url : null };
+        const trackRatingsData = trackRatingsRes.data || [];
+        const albumRatingsData = albumRatingsRes.data || [];
+        const allRatings = [...trackRatingsData.map(r => r.score), ...albumRatingsData.map(r => r.final_score)];
+        const allReviews = [...trackRatingsData.filter(r => r.review_text), ...albumRatingsData.filter(r => r.review_text)];
+        const artistCounts = {};
+        trackRatingsData.forEach(r => r.tracks.track_artists.forEach(a => artistCounts[a.artist_id] = (artistCounts[a.artist_id] || 0) + 1));
+        albumRatingsData.forEach(r => r.albums.album_artists.forEach(a => artistCounts[a.artist_id] = (artistCounts[a.artist_id] || 0) + 1));
+        const albumArtistCounts = {};
+        albumRatingsData.forEach(r => r.albums.album_artists.forEach(a => albumArtistCounts[a.artist_id] = (albumArtistCounts[a.artist_id] || 0) + 1));
+        const decades = new Set();
+        [...trackRatingsData.map(r => r.tracks.release_date), ...albumRatingsData.map(r => r.albums.release_date)].forEach(dateStr => {
+            if (dateStr) decades.add(Math.floor(new Date(dateStr).getFullYear() / 10) * 10);
+        });
+        let hasCoverToCover = false;
+        for (const ar of albumRatingsData) {
+            if (ar.albums.tracks.length >= 8) {
+                const ratedTrackIds = new Set(trackRatingsData.map(r => r.tracks.id));
+                if (ar.albums.tracks.every(t => ratedTrackIds.has(t.id))) {
+                    hasCoverToCover = true;
+                    break;
+                }
+            }
+        }
+        const albumScores = (legendaryAlbumsRes.data || []).reduce((acc, r) => { (acc[r.album_id] = acc[r.album_id] || []).push(r.final_score); return acc; }, {});
+        const legendaryAlbumIds = Object.keys(albumScores).filter(id => albumScores[id].reduce((s, c) => s + c, 0) / albumScores[id].length > 27).map(id => parseInt(id));
+        
+        return {
+            profile: profileData,
+            totalRatings: allRatings.length,
+            totalReviews: allReviews.length,
+            trackRatingsCount: trackRatingsData.length,
+            albumRatingsCount: albumRatingsData.length,
+            allRatings: allRatings,
+            allReviews: allReviews,
+            trackRatingsData: trackRatingsData,
+            albumRatingsData: albumRatingsData,
+            artistCounts: artistCounts,
+            albumArtistCounts: albumArtistCounts,
+            decades: decades,
+            hasCoverToCover: hasCoverToCover,
+            legendaryAlbumIds: legendaryAlbumIds
+        };
+    } catch (error) {
+        console.error("Ошибка при сборе статистики для достижений:", error);
+        return null;
+    }
+}
+
+function getAchievementCheckFunctions() {
+    return {
+        debutant: (stats) => stats.totalRatings > 0,
+        critic: (stats) => stats.totalReviews >= 10,
+        music_lover: (stats) => stats.trackRatingsCount >= 50,
+        harsh: (stats) => stats.allRatings.some(s => s < 10),
+        connoisseur: (stats) => Math.max(0, ...Object.values(stats.artistCounts)) >= 10,
+        album_lover: (stats) => stats.albumRatingsCount > 0,
+        self_expression: (stats) => stats.profile.username && stats.profile.avatar_url,
+        high_score: (stats) => stats.allRatings.some(s => s >= 28),
+        classic: (stats) => [...stats.trackRatingsData.map(r => r.tracks.release_date), ...stats.albumRatingsData.map(r => r.albums.release_date)].some(d => d && new Date(d).getFullYear() < 2010),
+        hall_of_fame: (stats) => stats.albumRatingsData.some(r => stats.legendaryAlbumIds.includes(r.album_id)),
+        spectrum: (stats) => stats.allRatings.some(s => s < 10) && stats.allRatings.some(s => s >= 15 && s <= 20) && stats.allRatings.some(s => s > 25),
+        discography: (stats) => Math.max(0, ...Object.values(stats.albumArtistCounts)) >= 3,
+        fresh: (stats) => stats.allReviews.some(r => {
+            const releaseDate = r.tracks?.release_date || r.albums?.release_date;
+            return releaseDate && (new Date(r.created_at) - new Date(releaseDate)) <= 7 * 24 * 60 * 60 * 1000;
+        }),
+        essayist: (stats) => stats.allReviews.some(r => r.review_text && r.review_text.length > 500),
+        time_machine: (stats) => stats.decades.size >= 4,
+        cover_to_cover: (stats) => stats.hasCoverToCover,
+        gold_standard: (stats) => stats.totalRatings >= 100 && (stats.allRatings.reduce((a, b) => a + b, 0) / stats.totalRatings) > 20,
+        legacy_keeper: (stats) => stats.albumRatingsData.filter(r => stats.legendaryAlbumIds.includes(r.album_id)).length >= 5,
+        encyclopedist: (stats) => new Set(Object.keys(stats.artistCounts)).size >= 50,
+        flawless: (stats) => stats.trackRatingsData.some(r => r.score === 30)
+    };
+}
+
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     let interval = seconds / 31536000;
@@ -18,39 +177,23 @@ function timeAgo(date) {
     return "только что";
 }
 
-
-// ФУНКЦИЯ ОПТИМИЗАЦИИ ИЗОБРАЖЕНИЙ
 function getTransformedImageUrl(url, options) {
-    if (!url || !url.startsWith(SUPABASE_URL)) {
-        return url;
-    }
-
+    if (!url || !url.startsWith(SUPABASE_URL)) return url;
     try {
         const urlObject = new URL(url);
         const pathSegments = urlObject.pathname.split('/');
-        
         const publicIndex = pathSegments.indexOf('public');
-        if (publicIndex === -1 || publicIndex + 1 >= pathSegments.length) {
-            return url;
-        }
-
+        if (publicIndex === -1 || publicIndex + 1 >= pathSegments.length) return url;
         const bucketName = pathSegments[publicIndex + 1];
         const filePath = pathSegments.slice(publicIndex + 2).join('/');
-
-        const { data } = supabaseClient
-            .storage
-            .from(bucketName)
-            .getPublicUrl(filePath, { transform: options });
-
+        const { data } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath, { transform: options });
         return data.publicUrl;
-
     } catch (error) {
         console.error('Ошибка при трансформации URL изображения:', error);
         return url;
     }
 }
 
-// ОБЩИЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 function getScoreColor(score, maxScore = 30) {
     if (score === null || score === undefined) return '#6c757d';
     const hue = (score / maxScore) * 120;
@@ -60,19 +203,12 @@ function getScoreColor(score, maxScore = 30) {
 function createCommentElement(profile, score, text, scoreMax = 30) {
     const element = document.createElement('div');
     element.className = 'review-item';
-    
     const finalAvatarUrl = profile?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
     const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 96, height: 96, resize: 'cover' });
-    
     const username = profile?.username || 'Аноним';
-
-    const authorHtml = profile?.id
-        ? `<a href="user.html?id=${profile.id}" class="review-item-author">${username}</a>`
-        : `<span class="review-item-author">${username}</span>`;
-
+    const authorHtml = profile?.id ? `<a href="user.html?id=${profile.id}" class="review-item-author">${username}</a>` : `<span class="review-item-author">${username}</span>`;
     const scoreFormatted = Number(score).toFixed(2);
     const reviewText = text || 'Пользователь не оставил рецензию.';
-
     element.innerHTML = `
         <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar" loading="lazy">
         <div class="review-item-body">
@@ -85,25 +221,17 @@ function createCommentElement(profile, score, text, scoreMax = 30) {
     return element;
 }
 
-
-// ЛОГИКА ВЫХОДА ИЗ СИСТЕМЫ
 const logoutButton = document.getElementById('logout-button');
 if (logoutButton) {
     logoutButton.addEventListener('click', async (e) => {
         e.preventDefault();
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) {
-            console.error('Ошибка выхода:', error);
-        } else {
-            window.location.href = 'login.html';
-        }
+        await supabaseClient.auth.signOut();
+        window.location.href = 'login.html';
     });
 }
 
-// ЛОГИКА ПОИСКА
 const searchInput = document.getElementById('search-input');
 const searchResultsContainer = document.getElementById('search-results-container');
-
 if (searchInput && searchResultsContainer) {
     function debounce(func, delay = 300) {
         let timeout;
@@ -117,7 +245,6 @@ if (searchInput && searchResultsContainer) {
 
     function renderResults({ artists, albums, tracks }) {
         searchResultsContainer.innerHTML = '';
-
         const iconArtist = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>`;
         const iconAlbum = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z" /></svg>`;
         const iconTrack = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,3V12.26C11.5,12.09 11,12 10.5,12C8,12 6,14 6,16.5C6,19 8,21 10.5,21C13,21 15,19 15,16.5V6H18V3H12Z" /></svg>`;
@@ -138,44 +265,14 @@ if (searchInput && searchResultsContainer) {
             const icon = type === 'artist' ? iconArtist : (type === 'album' ? iconAlbum : iconTrack);
             const artistNameText = getArtistNames(item);
             const artistName = artistNameText ? `<span class="search-item-artist">${artistNameText}</span>` : '';
-
             let title = item.name || item.title;
-            if (type === 'track') {
-                const trackArtists = item.track_artists || [];
-                if (trackArtists.length > 1) {
-                    const featured = trackArtists.filter(a => !a.is_main_artist).map(a => a.artists.name);
-                    if (featured.length > 0) {
-                        title += ` (ft. ${featured.join(', ')})`;
-                    }
-                }
-            }
-
-            const fullTitleForTooltip = artistNameText ? `${title} - ${artistNameText}` : title;
-
-            return `
-                <a ${href} class="search-result-item" title="${fullTitleForTooltip}">
-                    <div class="search-item-icon">${icon}</div>
-                    <div class="search-item-info">
-                        <span class="search-item-title">${title}</span>
-                        ${artistName}
-                    </div>
-                </a>
-            `;
+            return `<a ${href} class="search-result-item" title="${title}"><div class="search-item-icon">${icon}</div><div class="search-item-info"><span class="search-item-title">${title}</span>${artistName}</div></a>`;
         };
 
         let html = '';
-        if (artists.length) {
-            html += '<div class="search-category-title">Артисты</div>';
-            artists.forEach(a => { html += createItem(a, 'artist'); });
-        }
-        if (albums.length) {
-            html += '<div class="search-category-title">Альбомы</div>';
-            albums.forEach(a => { html += createItem(a, 'album'); });
-        }
-        if (tracks.length) {
-            html += '<div class="search-category-title">Треки</div>';
-            tracks.forEach(t => { html += createItem(t, 'track'); });
-        }
+        if (artists.length) html += '<div class="search-category-title">Артисты</div>' + artists.map(a => createItem(a, 'artist')).join('');
+        if (albums.length) html += '<div class="search-category-title">Альбомы</div>' + albums.map(a => createItem(a, 'album')).join('');
+        if (tracks.length) html += '<div class="search-category-title">Треки</div>' + tracks.map(t => createItem(t, 'track')).join('');
         searchResultsContainer.innerHTML = html;
     }
 
@@ -190,98 +287,54 @@ if (searchInput && searchResultsContainer) {
             const [artistsRes, albumsRes, tracksRes] = await Promise.all([
                 supabaseClient.from('artists').select('id, name').ilike('name', `%${query}%`).limit(3),
                 supabaseClient.from('albums').select('id, title, album_artists(artists(name))').ilike('title', `%${query}%`).limit(5),
-                supabaseClient.from('tracks').select('id, title, track_artists(is_main_artist, artists(name))').ilike('title', `%${query}%`).limit(5)
+                supabaseClient.from('tracks').select('id, title, track_artists(artists(name))').ilike('title', `%${query}%`).limit(5)
             ]);
-            
-            const errors = [artistsRes.error, albumsRes.error, tracksRes.error].filter(Boolean);
-            if (errors.length > 0) {
-                throw new Error(errors.map(e => e.message).join(', '));
-            }
-
             renderResults({ artists: artistsRes.data, albums: albumsRes.data, tracks: tracksRes.data });
         } catch (error) {
-            console.error('Ошибка поиска:', error);
             searchResultsContainer.innerHTML = '<div class="search-no-results">Ошибка поиска</div>';
         }
     }
     
     searchInput.addEventListener('input', debounce((e) => performSearch(e.target.value.trim())));
-    searchInput.addEventListener('focus', () => {
-        if (searchInput.value.length >= 2) {
-            searchResultsContainer.style.display = 'block';
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#search-container')) {
-            searchResultsContainer.style.display = 'none';
-        }
-    });
+    searchInput.addEventListener('focus', () => { if (searchInput.value.length >= 2) searchResultsContainer.style.display = 'block'; });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#search-container')) searchResultsContainer.style.display = 'none'; });
 }
 
-// ЛОГИКА УВЕДОМЛЕНИЙ
 const notificationsContainer = document.getElementById('notifications-container');
-
 if (notificationsContainer) {
     const bellButton = document.getElementById('notification-bell-button');
     const countBadge = document.getElementById('notifications-count');
     const dropdown = document.getElementById('notifications-dropdown');
     const notificationsList = document.getElementById('notifications-list');
-    let unreadNotificationsIds = [];
-
-    // Функция для отображения уведомлений в списке
+    
     function renderNotifications(notifications) {
         notificationsList.innerHTML = '';
         if (!notifications || notifications.length === 0) {
             notificationsList.innerHTML = '<p class="no-notifications">Уведомлений пока нет.</p>';
             return;
         }
-
-        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-        const lastReadTimestamp = parseInt(sessionStorage.getItem('notifications_marked_read_timestamp') || '0');
-        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
-
+        const lastReadTimestamp = parseInt(localStorage.getItem('notifications_last_read_timestamp') || '0');
         notifications.forEach(notif => {
-            const creator = notif.creator_user_id; // В Supabase это будет объект profiles
+            const creator = notif.creator_user_id;
             const finalAvatarUrl = creator?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
             const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 80, height: 80, resize: 'cover' });
-            
             const item = document.createElement('a');
             item.href = notif.link_url || '#';
             item.className = 'notification-item';
-            
-            // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-            // Считаем уведомление прочитанным, если оно помечено в БД ИЛИ если оно старше последней отметки о прочтении
-            const isEffectivelyRead = notif.is_read || new Date(notif.created_at).getTime() < lastReadTimestamp;
-            if (!isEffectivelyRead) {
-                item.classList.add('is-unread');
-            }
-            // --- ИЗМЕНЕНИЕ КОНЕЦ ---
-            
+            if (new Date(notif.created_at).getTime() > lastReadTimestamp) item.classList.add('is-unread');
             item.innerHTML = `
                 <img src="${avatarUrl}" alt="Аватар" class="notification-avatar">
                 <div class="notification-body">
                     <p class="notification-content">${notif.content}</p>
                     <p class="notification-date">${timeAgo(notif.created_at)}</p>
-                </div>
-            `;
+                </div>`;
             notificationsList.appendChild(item);
         });
     }
 
-    // Функция для обновления счетчика непрочитанных
     function updateUnreadCount(notifications) {
-        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-        const lastReadTimestamp = parseInt(sessionStorage.getItem('notifications_marked_read_timestamp') || '0');
-
-        const unread = notifications.filter(n => {
-            const isOlderThanLastRead = new Date(n.created_at).getTime() < lastReadTimestamp;
-            return !n.is_read && !isOlderThanLastRead;
-        });
-        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
-
-        unreadNotificationsIds = unread.map(n => n.id);
-
+        const lastReadTimestamp = parseInt(localStorage.getItem('notifications_last_read_timestamp') || '0');
+        const unread = notifications.filter(n => new Date(n.created_at).getTime() > lastReadTimestamp);
         if (unread.length > 0) {
             countBadge.textContent = unread.length > 9 ? '9+' : unread.length;
             countBadge.classList.add('is-visible');
@@ -290,80 +343,33 @@ if (notificationsContainer) {
         }
     }
     
-    // Функция для пометки уведомлений как прочитанных
-    async function markNotificationsAsRead() {
-        if (unreadNotificationsIds.length === 0) return;
-        
-        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-        // Запоминаем текущее время ДО отправки запроса
-        const now = Date.now();
-        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
-
-        const { error } = await supabaseClient
-            .from('notifications')
-            .update({ is_read: true })
-            .in('id', unreadNotificationsIds);
-        
-        if (error) {
-            console.error("Ошибка при обновлении статуса уведомлений:", error);
-        } else {
-            // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-            // При успехе сохраняем метку времени в sessionStorage
-            sessionStorage.setItem('notifications_marked_read_timestamp', now);
-            // --- ИЗМЕНЕНИЕ КОНЕЦ ---
-
-            // Убираем счетчик сразу, не дожидаясь перезагрузки страницы
-            unreadNotificationsIds = [];
-            countBadge.classList.remove('is-visible');
-            document.querySelectorAll('.notification-item.is-unread').forEach(item => {
-                item.classList.remove('is-unread');
-            });
-        }
+    function markNotificationsAsRead() {
+        localStorage.setItem('notifications_last_read_timestamp', Date.now().toString());
+        countBadge.classList.remove('is-visible');
+        document.querySelectorAll('.notification-item.is-unread').forEach(item => item.classList.remove('is-unread'));
     }
 
-    // Открытие/закрытие выпадающего списка
     bellButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isVisible = dropdown.classList.toggle('is-visible');
-        if (isVisible) {
-            markNotificationsAsRead();
-        }
+        dropdown.classList.toggle('is-visible');
+        markNotificationsAsRead();
     });
 
-    // Закрытие по клику вне элемента
-    document.addEventListener('click', (e) => {
-        if (!notificationsContainer.contains(e.target)) {
-            dropdown.classList.remove('is-visible');
-        }
-    });
+    document.addEventListener('click', (e) => { if (!notificationsContainer.contains(e.target)) dropdown.classList.remove('is-visible'); });
 
-    // Основная функция инициализации
     async function initializeNotifications() {
         const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) return; // Не выполнять для неавторизованных пользователей
-
-        const userId = session.user.id;
-        
-        const { data, error } = await supabaseClient
-            .from('notifications')
-            .select(`
-                id, content, link_url, is_read, created_at,
-                creator_user_id ( username, avatar_url )
-            `)
-            .eq('recipient_user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(15);
-        
+        if (!session) return;
+        const { data, error } = await supabaseClient.from('notifications')
+            .select(`*, creator_user_id ( username, avatar_url )`)
+            .eq('recipient_user_id', session.user.id)
+            .order('created_at', { ascending: false }).limit(15);
         if (error) {
-            console.error("Ошибка загрузки уведомлений:", error);
             notificationsList.innerHTML = '<p class="no-notifications">Ошибка загрузки.</p>';
             return;
         }
-
         renderNotifications(data);
         updateUnreadCount(data);
     }
-
-    // Запускаем при загрузке страницы
     initializeNotifications();
 }

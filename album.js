@@ -97,7 +97,6 @@ async function loadAlbumData(albumId) {
     }
     
     trackList.innerHTML = '';
-    // Сортируем треки по ID для сохранения оригинального порядка
     data.tracks.sort((a, b) => a.id - b.id);
     data.tracks.forEach(track => {
         const trackEl = document.createElement('a');
@@ -208,21 +207,18 @@ async function handleRatingSubmit(e) {
         albumRatingStatus.textContent = "Ваша оценка сохранена!";
         albumRatingStatus.style.color = 'var(--success-color)';
 
-        // --- ИЗМЕНЕНИЕ: ОТПРАВКА УВЕДОМЛЕНИЯ ---
-        // Получаем профиль текущего пользователя для уведомления
-        const { data: profile, error: profileError } = await supabaseClient
+        // --- ВЫЗОВ ПРОВЕРКИ ДОСТИЖЕНИЙ ---
+        checkAndNotifyAchievements(currentUser.id);
+
+        const { data: profile } = await supabaseClient
             .from('profiles')
             .select('id, username')
             .eq('id', currentUser.id)
             .single();
         
-        if (profile && !profileError) {
-            // Запускаем создание уведомления в фоновом режиме, чтобы не задерживать пользователя
+        if (profile) {
             createReviewNotification('album', currentAlbumId, profile, albumTitle.textContent);
-        } else if (profileError) {
-            console.error("Не удалось получить профиль пользователя для отправки уведомления:", profileError);
         }
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
         setTimeout(() => {
             modalOverlay.classList.remove('is-visible');
