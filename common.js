@@ -373,3 +373,41 @@ if (notificationsContainer) {
     }
     initializeNotifications();
 }
+
+// --- HAMBURGER MENU TOGGLE ---
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggleButton = document.getElementById('menu-toggle-button');
+    const mainNav = document.getElementById('main-nav');
+    const menuOverlay = document.querySelector('.menu-overlay');
+
+    if (menuToggleButton && mainNav && menuOverlay) {
+        const toggleMenu = () => {
+            const isOpen = mainNav.classList.toggle('is-open');
+            menuOverlay.classList.toggle('is-visible', isOpen);
+            document.body.classList.toggle('menu-open', isOpen);
+            menuToggleButton.setAttribute('aria-expanded', isOpen);
+        };
+
+        const closeMenu = () => {
+            if (mainNav.classList.contains('is-open')) {
+                mainNav.classList.remove('is-open');
+                menuOverlay.classList.remove('is-visible');
+                document.body.classList.remove('menu-open');
+                menuToggleButton.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        menuToggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        menuOverlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mainNav.classList.contains('is-open')) {
+                closeMenu();
+            }
+        });
+    }
+});
