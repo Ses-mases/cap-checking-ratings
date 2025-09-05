@@ -1,4 +1,3 @@
-
 // ЭЛЕМЕНТЫ DOM
 const loadingIndicator = document.getElementById('loading-indicator');
 const artistContent = document.getElementById('artist-content');
@@ -68,7 +67,11 @@ async function loadMoreTracks() {
 
     if (error) {
         console.error('Ошибка загрузки треков:', error);
-        if (trackCurrentPage === 0) artistTracksList.innerHTML = '<p>Не удалось загрузить треки.</p>';
+        if (trackCurrentPage === 0) {
+            const p = document.createElement('p');
+            p.textContent = 'Не удалось загрузить треки.';
+            artistTracksList.appendChild(p);
+        }
         isTracksLoading = false;
         return;
     }
@@ -94,7 +97,9 @@ async function loadMoreTracks() {
     }
 
     if (trackCurrentPage === 1 && tracks.length === 0) {
-        artistTracksList.innerHTML = '<p>Треки этого исполнителя еще не добавлены.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Треки этого исполнителя еще не добавлены.';
+        artistTracksList.appendChild(p);
     }
 
     isTracksLoading = false;
@@ -129,7 +134,12 @@ async function loadArtistData(artistId) {
             const ratingDiv = document.createElement('div');
             ratingDiv.className = 'artist-rating';
             ratingDiv.style.setProperty('--rating-color', ratingColor); 
-            ratingDiv.innerHTML = `Рейтинг: <strong>${roundedRating}</strong>`;
+            ratingDiv.textContent = 'Рейтинг: ';
+            
+            const ratingStrong = document.createElement('strong');
+            ratingStrong.textContent = roundedRating;
+            ratingDiv.appendChild(ratingStrong);
+
             artistRatingContainer.innerHTML = '';
             artistRatingContainer.appendChild(ratingDiv);
         }
@@ -160,37 +170,59 @@ function renderTracks(tracks, isInitialLoad) {
             trackEl.className = 'track-list-item';
             trackEl.href = `track.html?id=${track.id}`;
 
-            trackEl.innerHTML = `
-                <span class="track-title">${track.title}</span>
-                <span class="track-avg-score" style="color: ${getScoreColor(track.avgScore)}">
-                    ${track.avgScore > 0 ? track.avgScore.toFixed(2) : '-.--'}
-                </span>`;
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'track-title';
+            titleSpan.textContent = track.title;
+            
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'track-avg-score';
+            scoreSpan.style.color = getScoreColor(track.avgScore);
+            scoreSpan.textContent = track.avgScore > 0 ? track.avgScore.toFixed(2) : '-.--';
+
+            trackEl.appendChild(titleSpan);
+            trackEl.appendChild(scoreSpan);
             artistTracksList.appendChild(trackEl);
         });
     }
 }
 
 function renderAlbums(albums, mainArtistName) {
-     artistAlbumsContainer.innerHTML = '';
+    artistAlbumsContainer.innerHTML = '';
     if (albums.length > 0) {
         albums.forEach(album => {
             const cardLink = document.createElement('a');
             cardLink.href = `album.html?id=${album.id}`;
             cardLink.className = 'card-link';
-            const coverSource = getTransformedImageUrl(album.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
 
-            cardLink.innerHTML = `
-                <div class="card">
-                    <img src="${coverSource}" alt="Обложка альбома ${album.title}" loading="lazy">
-                    <div class="card-body">
-                        <h3>${album.title}</h3>
-                        <p>${mainArtistName}</p>
-                    </div>
-                </div>`;
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const coverSource = getTransformedImageUrl(album.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
+            const img = document.createElement('img');
+            img.src = coverSource;
+            img.alt = `Обложка альбома ${album.title}`;
+            img.loading = 'lazy';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            const titleH3 = document.createElement('h3');
+            titleH3.textContent = album.title;
+
+            const artistP = document.createElement('p');
+            artistP.textContent = mainArtistName;
+
+            cardBody.appendChild(titleH3);
+            cardBody.appendChild(artistP);
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            cardLink.appendChild(card);
             artistAlbumsContainer.appendChild(cardLink);
         });
     } else {
-        artistAlbumsContainer.innerHTML = '<p>Альбомы этого исполнителя еще не добавлены.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Альбомы этого исполнителя еще не добавлены.';
+        artistAlbumsContainer.appendChild(p);
     }
 }
 

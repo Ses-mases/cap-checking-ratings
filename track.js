@@ -35,22 +35,30 @@ async function loadTrackData(trackId) {
     if (error || !data) {
         throw new Error('Трек не найден или произошла ошибка при загрузке.');
     }
+    
+    trackArtist.innerHTML = '';
+    trackTitle.innerHTML = '';
 
     if (data.track_artists && data.track_artists.length > 0) {
         data.track_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
         const featuredArtists = data.track_artists.filter(a => !a.is_main_artist);
-        let titleHtml = data.title;
+        let titleText = data.title;
         if (featuredArtists.length > 0) {
             const featuredNames = featuredArtists.map(a => a.artists.name).join(', ');
-            titleHtml += ` (ft. ${featuredNames})`;
+            titleText += ` (ft. ${featuredNames})`;
         }
-        document.title = `${titleHtml} | Cap Checking Ratings`;
-        trackTitle.innerHTML = titleHtml;
+        document.title = `${titleText} | Cap Checking Ratings`;
+        trackTitle.textContent = titleText;
 
-        const allArtistsHtml = data.track_artists.map(item => 
-            `<a href="artist.html?id=${item.artists.id}">${item.artists.name}</a>`
-        ).join(', ');
-        trackArtist.innerHTML = allArtistsHtml;
+        data.track_artists.forEach((item, index) => {
+            const link = document.createElement('a');
+            link.href = `artist.html?id=${item.artists.id}`;
+            link.textContent = item.artists.name;
+            trackArtist.appendChild(link);
+            if (index < data.track_artists.length - 1) {
+                trackArtist.appendChild(document.createTextNode(', '));
+            }
+        });
 
     } else {
         document.title = `${data.title} | Cap Checking Ratings`;
@@ -67,7 +75,11 @@ async function loadTrackData(trackId) {
     trackCover.src = getTransformedImageUrl(finalCoverUrl, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
 
     if (data.albums) {
-        albumLinkP.innerHTML = `Альбом: <a href="album.html?id=${data.albums.id}">${data.albums.title}</a>`;
+        albumLinkP.textContent = 'Альбом: ';
+        const link = document.createElement('a');
+        link.href = `album.html?id=${data.albums.id}`;
+        link.textContent = data.albums.title;
+        albumLinkP.appendChild(link);
         albumLinkP.classList.remove('hidden');
     }
 
@@ -98,7 +110,9 @@ async function loadTrackData(trackId) {
             reviewsList.appendChild(reviewEl);
         });
     } else {
-        reviewsList.innerHTML = '<p>Рецензий пока нет. Будьте первым!</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Рецензий пока нет. Будьте первым!';
+        reviewsList.appendChild(p);
     }
 
     const userRating = allRatings.find(r => r.user_id === currentUser.id);

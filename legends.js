@@ -3,10 +3,14 @@ const legendsContainer = document.getElementById('legends-grid-container');
 
 // ФУНКЦИЯ ОТОБРАЖЕНИЯ АЛЬБОМОВ
 function renderLegendaryAlbums(albums) {
-    legendsContainer.innerHTML = '';
+    while (legendsContainer.firstChild) {
+        legendsContainer.removeChild(legendsContainer.firstChild);
+    }
 
     if (!albums || albums.length === 0) {
-        legendsContainer.innerHTML = '<p>Пока ни один альбом не достиг легендарного статуса. Все впереди!</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Пока ни один альбом не достиг легендарного статуса. Все впереди!';
+        legendsContainer.appendChild(p);
         return;
     }
 
@@ -15,20 +19,39 @@ function renderLegendaryAlbums(albums) {
         cardLink.href = `album.html?id=${album.id}`;
         cardLink.classList.add('card-link');
         
+        const card = document.createElement('div');
+        card.className = 'card';
+        
         const coverSource = getTransformedImageUrl(album.cover_art_url, { width: 500, height: 500, resize: 'cover' }) || 'https://via.placeholder.com/250';
+        const img = document.createElement('img');
+        img.src = coverSource;
+        img.alt = `Обложка альбома ${album.title}`;
+        img.loading = 'lazy';
+
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        
+        const titleH3 = document.createElement('h3');
+        titleH3.textContent = album.title;
 
         const artistName = album.album_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист';
+        const artistP = document.createElement('p');
+        artistP.textContent = artistName;
+        
+        const scoreP = document.createElement('p');
+        scoreP.className = 'legend-score';
+        scoreP.textContent = 'Средняя оценка: ';
+        
+        const scoreStrong = document.createElement('strong');
+        scoreStrong.textContent = album.averageScore.toFixed(2);
+        scoreP.appendChild(scoreStrong);
 
-        cardLink.innerHTML = `
-            <div class="card">
-                <img src="${coverSource}" alt="Обложка альбома ${album.title}" loading="lazy">
-                <div class="card-body">
-                    <h3>${album.title}</h3>
-                    <p>${artistName}</p>
-                    <p class="legend-score">Средняя оценка: <strong>${album.averageScore.toFixed(2)}</strong></p>
-                </div>
-            </div>
-        `;
+        cardBody.appendChild(titleH3);
+        cardBody.appendChild(artistP);
+        cardBody.appendChild(scoreP);
+        card.appendChild(img);
+        card.appendChild(cardBody);
+        cardLink.appendChild(card);
         legendsContainer.appendChild(cardLink);
     });
 }

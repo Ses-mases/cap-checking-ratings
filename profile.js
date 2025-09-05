@@ -194,12 +194,16 @@ function initializeTrackRatings(user) {
             .range(from, to);
 
         if (currentPage === 0) {
-            trackRatingsList.innerHTML = '';
+            while (trackRatingsList.firstChild) {
+                trackRatingsList.removeChild(trackRatingsList.firstChild);
+            }
         }
 
         if (error) {
             console.error('Ошибка загрузки оценок треков:', error);
-            trackRatingsList.innerHTML = '<p>Не удалось загрузить оценки.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Не удалось загрузить оценки.';
+            trackRatingsList.appendChild(p);
             isLoading = false;
             return;
         }
@@ -207,26 +211,73 @@ function initializeTrackRatings(user) {
         if (data && data.length > 0) {
             data.forEach(rating => {
                 if (!rating.tracks) return;
+
                 const item = document.createElement('div');
                 item.className = 'review-item';
-                const reviewText = rating.review_text || '';
-                const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
+                
                 const finalCoverUrl = rating.tracks.cover_art_url || rating.tracks.albums?.cover_art_url;
                 const coverUrl = getTransformedImageUrl(finalCoverUrl, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
+                const img = document.createElement('img');
+                img.src = coverUrl;
+                img.alt = `Обложка трека ${rating.tracks.title}`;
+                img.className = 'review-item-cover';
+                img.loading = 'lazy';
+                item.appendChild(img);
 
-                item.innerHTML = `
-                    <img src="${coverUrl}" alt="Обложка трека ${rating.tracks.title}" class="review-item-cover" loading="lazy">
-                    <div class="review-item-body">
-                        <div class="review-item-header">
-                            <a href="track.html?id=${rating.tracks.id}" class="review-item-title">${rating.tracks.title}</a>
-                            <span class="review-item-score">Ваша оценка: <strong>${rating.score}/30</strong></span>
-                        </div>
-                        ${reviewHtml}
-                    </div>
-                    <div class="review-item-controls">
-                        <button class="icon-button edit-btn" title="Изменить" aria-label="Изменить оценку" data-id="${rating.id}" data-score="${rating.score}" data-review="${encodeURIComponent(reviewText)}"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg></button>
-                        <button class="icon-button delete-btn" title="Удалить" aria-label="Удалить оценку" data-id="${rating.id}"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
-                    </div>`;
+                const bodyDiv = document.createElement('div');
+                bodyDiv.className = 'review-item-body';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'review-item-header';
+
+                const titleLink = document.createElement('a');
+                titleLink.href = `track.html?id=${rating.tracks.id}`;
+                titleLink.className = 'review-item-title';
+                titleLink.textContent = rating.tracks.title;
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'review-item-score';
+                scoreSpan.textContent = 'Ваша оценка: ';
+                const scoreStrong = document.createElement('strong');
+                scoreStrong.textContent = `${rating.score}/30`;
+                scoreSpan.appendChild(scoreStrong);
+
+                headerDiv.appendChild(titleLink);
+                headerDiv.appendChild(scoreSpan);
+                bodyDiv.appendChild(headerDiv);
+
+                const reviewText = rating.review_text || '';
+                if(reviewText){
+                    const reviewP = document.createElement('p');
+                    reviewP.className = 'review-item-text';
+                    reviewP.textContent = `"${reviewText}"`;
+                    bodyDiv.appendChild(reviewP);
+                }
+                item.appendChild(bodyDiv);
+
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'review-item-controls';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'icon-button edit-btn';
+                editBtn.title = 'Изменить';
+                editBtn.setAttribute('aria-label', 'Изменить оценку');
+                editBtn.dataset.id = rating.id;
+                editBtn.dataset.score = rating.score;
+                editBtn.dataset.review = encodeURIComponent(reviewText);
+                editBtn.innerHTML = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'icon-button delete-btn';
+                deleteBtn.title = 'Удалить';
+                deleteBtn.setAttribute('aria-label', 'Удалить оценку');
+                deleteBtn.dataset.id = rating.id;
+                deleteBtn.innerHTML = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>`;
+
+                controlsDiv.appendChild(editBtn);
+                controlsDiv.appendChild(deleteBtn);
+                item.appendChild(controlsDiv);
+
                 trackRatingsList.appendChild(item);
             });
             currentPage++;
@@ -242,7 +293,9 @@ function initializeTrackRatings(user) {
         }
 
         if (currentPage === 1 && (!data || data.length === 0)) {
-            trackRatingsList.innerHTML = '<p>Вы еще не ставили оценок трекам.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Вы еще не ставили оценок трекам.';
+            trackRatingsList.appendChild(p);
         }
 
         isLoading = false;
@@ -307,12 +360,16 @@ function initializeAlbumRatings(user) {
             .range(from, to);
 
         if (currentPage === 0) {
-            albumRatingsList.innerHTML = '';
+            while (albumRatingsList.firstChild) {
+                albumRatingsList.removeChild(albumRatingsList.firstChild);
+            }
         }
 
         if (error) {
             console.error('Ошибка загрузки оценок альбомов:', error);
-            albumRatingsList.innerHTML = '<p>Не удалось загрузить оценки.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Не удалось загрузить оценки.';
+            albumRatingsList.appendChild(p);
             isLoading = false;
             return;
         }
@@ -320,34 +377,76 @@ function initializeAlbumRatings(user) {
         if (data && data.length > 0) {
             data.forEach(rating => {
                 if (!rating.albums) return;
+                
                 const item = document.createElement('div');
                 item.className = 'review-item';
-                const reviewText = rating.review_text || '';
-                const reviewHtml = reviewText ? `<p class="review-item-text">"${reviewText}"</p>` : '';
-                const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
 
-                item.innerHTML = `
-                    <img src="${coverUrl}" alt="Обложка альбома ${rating.albums.title}" class="review-item-cover" loading="lazy">
-                    <div class="review-item-body">
-                         <div class="review-item-header">
-                            <a href="album.html?id=${rating.albums.id}" class="review-item-title">${rating.albums.title}</a>
-                            <span class="review-item-score">Ваша оценка: <strong>${parseFloat(rating.final_score).toFixed(2)}/30</strong></span>
-                        </div>
-                        ${reviewHtml}
-                    </div>
-                    <div class="review-item-controls">
-                        <button class="icon-button edit-album-btn" title="Изменить" aria-label="Изменить оценку"
-                            data-id="${rating.id}"
-                            data-rarity="${rating.rarity}"
-                            data-integrity="${rating.integrity}"
-                            data-depth="${rating.depth}"
-                            data-quality="${rating.quality}"
-                            data-influence="${rating.influence}"
-                            data-review="${encodeURIComponent(reviewText)}">
-                            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>
-                        </button>
-                        <button class="icon-button delete-btn" title="Удалить" aria-label="Удалить оценку" data-id="${rating.id}"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg></button>
-                    </div>`;
+                const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
+                const img = document.createElement('img');
+                img.src = coverUrl;
+                img.alt = `Обложка альбома ${rating.albums.title}`;
+                img.className = 'review-item-cover';
+                img.loading = 'lazy';
+                item.appendChild(img);
+
+                const bodyDiv = document.createElement('div');
+                bodyDiv.className = 'review-item-body';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'review-item-header';
+
+                const titleLink = document.createElement('a');
+                titleLink.href = `album.html?id=${rating.albums.id}`;
+                titleLink.className = 'review-item-title';
+                titleLink.textContent = rating.albums.title;
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'review-item-score';
+                scoreSpan.textContent = 'Ваша оценка: ';
+                const scoreStrong = document.createElement('strong');
+                scoreStrong.textContent = `${parseFloat(rating.final_score).toFixed(2)}/30`;
+                scoreSpan.appendChild(scoreStrong);
+
+                headerDiv.appendChild(titleLink);
+                headerDiv.appendChild(scoreSpan);
+                bodyDiv.appendChild(headerDiv);
+
+                const reviewText = rating.review_text || '';
+                if (reviewText) {
+                    const reviewP = document.createElement('p');
+                    reviewP.className = 'review-item-text';
+                    reviewP.textContent = `"${reviewText}"`;
+                    bodyDiv.appendChild(reviewP);
+                }
+                item.appendChild(bodyDiv);
+
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'review-item-controls';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'icon-button edit-album-btn';
+                editBtn.title = 'Изменить';
+                editBtn.setAttribute('aria-label', 'Изменить оценку');
+                editBtn.dataset.id = rating.id;
+                editBtn.dataset.rarity = rating.rarity;
+                editBtn.dataset.integrity = rating.integrity;
+                editBtn.dataset.depth = rating.depth;
+                editBtn.dataset.quality = rating.quality;
+                editBtn.dataset.influence = rating.influence;
+                editBtn.dataset.review = encodeURIComponent(reviewText);
+                editBtn.innerHTML = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z"></path></svg>`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'icon-button delete-btn';
+                deleteBtn.title = 'Удалить';
+                deleteBtn.setAttribute('aria-label', 'Удалить оценку');
+                deleteBtn.dataset.id = rating.id;
+                deleteBtn.innerHTML = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path></svg>`;
+                
+                controlsDiv.appendChild(editBtn);
+                controlsDiv.appendChild(deleteBtn);
+                item.appendChild(controlsDiv);
+
                 albumRatingsList.appendChild(item);
             });
             currentPage++;
@@ -363,7 +462,9 @@ function initializeAlbumRatings(user) {
         }
         
         if (currentPage === 1 && (!data || data.length === 0)) {
-            albumRatingsList.innerHTML = '<p>Вы еще не ставили оценок альбомам.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Вы еще не ставили оценок альбомам.';
+            albumRatingsList.appendChild(p);
         }
 
         isLoading = false;
@@ -576,7 +677,11 @@ function initializeAchievements(user) {
     };
 
     const loadAndRenderAchievements = async () => {
-        achievementsList.innerHTML = '<p>Загрузка достижений...</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Загрузка достижений...';
+        achievementsList.innerHTML = '';
+        achievementsList.appendChild(p);
+
         try {
             const { data: earnedData, error } = await supabaseClient
                 .from('user_achievements')
@@ -603,18 +708,35 @@ function initializeAchievements(user) {
                 if (group.achievements.length > 0) {
                     const groupContainer = document.createElement('div');
                     groupContainer.className = 'achievement-group';
-                    groupContainer.innerHTML = `<h4>${group.title}</h4>`;
+                    
+                    const titleH4 = document.createElement('h4');
+                    titleH4.textContent = group.title;
+                    groupContainer.appendChild(titleH4);
 
                     group.achievements.forEach(ach => {
                         const isEarned = earnedIds.has(ach.id);
                         const item = document.createElement('div');
-                        item.className = `achievement-item ${isEarned ? 'is-earned' : ''}`;
-                        item.innerHTML = `
-                            <div class="achievement-icon" aria-hidden="true">${ach.icon}</div>
-                            <div class="achievement-details">
-                                <h4>${ach.title}</h4>
-                                <p>${ach.description}</p>
-                            </div>`;
+                        item.className = 'achievement-item';
+                        if (isEarned) item.classList.add('is-earned');
+                        
+                        const iconDiv = document.createElement('div');
+                        iconDiv.className = 'achievement-icon';
+                        iconDiv.setAttribute('aria-hidden', 'true');
+                        iconDiv.textContent = ach.icon;
+                        
+                        const detailsDiv = document.createElement('div');
+                        detailsDiv.className = 'achievement-details';
+                        
+                        const nameH4 = document.createElement('h4');
+                        nameH4.textContent = ach.title;
+
+                        const descP = document.createElement('p');
+                        descP.textContent = ach.description;
+
+                        detailsDiv.appendChild(nameH4);
+                        detailsDiv.appendChild(descP);
+                        item.appendChild(iconDiv);
+                        item.appendChild(detailsDiv);
                         groupContainer.appendChild(item);
                     });
                     achievementsList.appendChild(groupContainer);
@@ -622,7 +744,10 @@ function initializeAchievements(user) {
             }
         } catch (error) {
             console.error('Ошибка загрузки достижений:', error);
-            achievementsList.innerHTML = '<p>Не удалось загрузить данные о достижениях.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Не удалось загрузить данные о достижениях.';
+            achievementsList.innerHTML = '';
+            achievementsList.appendChild(p);
         }
     };
 

@@ -57,13 +57,19 @@ async function loadAlbumData(albumId) {
     
     document.title = `${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
+    albumArtist.innerHTML = '';
     
     if (data.album_artists && data.album_artists.length > 0) {
         data.album_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
-        const allArtistsHtml = data.album_artists.map(item => 
-            `<a href="artist.html?id=${item.artists.id}">${item.artists.name}</a>`
-        ).join(', ');
-        albumArtist.innerHTML = allArtistsHtml;
+        data.album_artists.forEach((item, index) => {
+            const link = document.createElement('a');
+            link.href = `artist.html?id=${item.artists.id}`;
+            link.textContent = item.artists.name;
+            albumArtist.appendChild(link);
+            if(index < data.album_artists.length - 1) {
+                albumArtist.appendChild(document.createTextNode(', '));
+            }
+        });
     } else {
         albumArtist.textContent = 'Неизвестный артист';
     }
@@ -104,6 +110,7 @@ async function loadAlbumData(albumId) {
         const trackEl = document.createElement('a');
         trackEl.className = 'track-list-item';
         trackEl.href = `track.html?id=${track.id}`;
+
         let trackTitleWithFeatures = track.title;
         const artists = track.track_artists || [];
         if (artists.length > 1) {
@@ -112,12 +119,19 @@ async function loadAlbumData(albumId) {
                 trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
             }
         }
-        let avgScore = track.ratings.length > 0 ? track.ratings.reduce((acc, r) => acc + r.score, 0) / track.ratings.length : null;
-        trackEl.innerHTML = `
-            <span class="track-title">${trackTitleWithFeatures}</span>
-            <span class="track-avg-score" style="color: ${getScoreColor(avgScore)}">
-                ${avgScore ? avgScore.toFixed(2) : '-.--'}
-            </span>`;
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'track-title';
+        titleSpan.textContent = trackTitleWithFeatures;
+        
+        const avgScore = track.ratings.length > 0 ? track.ratings.reduce((acc, r) => acc + r.score, 0) / track.ratings.length : null;
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'track-avg-score';
+        scoreSpan.style.color = getScoreColor(avgScore);
+        scoreSpan.textContent = avgScore ? avgScore.toFixed(2) : '-.--';
+
+        trackEl.appendChild(titleSpan);
+        trackEl.appendChild(scoreSpan);
         trackList.appendChild(trackEl);
     });
     
@@ -128,7 +142,9 @@ async function loadAlbumData(albumId) {
             commentsList.appendChild(reviewEl);
         });
     } else {
-        commentsList.innerHTML = '<p>Рецензий на альбом пока нет.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Рецензий на альбом пока нет.';
+        commentsList.appendChild(p);
     }
     
     loadingIndicator.classList.add('hidden');

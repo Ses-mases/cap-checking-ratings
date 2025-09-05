@@ -203,21 +203,56 @@ function getScoreColor(score, maxScore = 30) {
 function createCommentElement(profile, score, text, scoreMax = 30) {
     const element = document.createElement('div');
     element.className = 'review-item';
+
     const finalAvatarUrl = profile?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
     const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 96, height: 96, resize: 'cover' });
+    
+    const avatarImg = document.createElement('img');
+    avatarImg.src = avatarUrl;
+    avatarImg.alt = "Аватар";
+    avatarImg.className = 'review-item-avatar';
+    avatarImg.loading = 'lazy';
+    
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'review-item-body';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'review-item-header';
+
     const username = profile?.username || 'Аноним';
-    const authorHtml = profile?.id ? `<a href="user.html?id=${profile.id}" class="review-item-author">${username}</a>` : `<span class="review-item-author">${username}</span>`;
+    let authorEl;
+    if (profile?.id) {
+        authorEl = document.createElement('a');
+        authorEl.href = `user.html?id=${profile.id}`;
+    } else {
+        authorEl = document.createElement('span');
+    }
+    authorEl.className = 'review-item-author';
+    authorEl.textContent = username;
+
+    const scoreSpan = document.createElement('span');
+    scoreSpan.className = 'review-item-score';
+    scoreSpan.textContent = 'Оценка: ';
+
+    const scoreStrong = document.createElement('strong');
     const scoreFormatted = Number(score).toFixed(2);
-    const reviewText = text || 'Пользователь не оставил рецензию.';
-    element.innerHTML = `
-        <img src="${avatarUrl}" alt="Аватар" class="review-item-avatar" loading="lazy">
-        <div class="review-item-body">
-            <div class="review-item-header">
-                ${authorHtml}
-                <span class="review-item-score">Оценка: <strong style="color: ${getScoreColor(scoreFormatted, scoreMax)}">${scoreFormatted} / ${scoreMax}</strong></span>
-            </div>
-            <p class="review-item-text">${reviewText}</p>
-        </div>`;
+    scoreStrong.style.color = getScoreColor(scoreFormatted, scoreMax);
+    scoreStrong.textContent = `${scoreFormatted} / ${scoreMax}`;
+    
+    scoreSpan.appendChild(scoreStrong);
+    headerDiv.appendChild(authorEl);
+    headerDiv.appendChild(scoreSpan);
+    
+    const reviewTextP = document.createElement('p');
+    reviewTextP.className = 'review-item-text';
+    reviewTextP.textContent = text || 'Пользователь не оставил рецензию.';
+
+    bodyDiv.appendChild(headerDiv);
+    bodyDiv.appendChild(reviewTextP);
+    
+    element.appendChild(avatarImg);
+    element.appendChild(bodyDiv);
+
     return element;
 }
 
@@ -244,13 +279,19 @@ if (searchInput && searchResultsContainer) {
     }
 
     function renderResults({ artists, albums, tracks }) {
-        searchResultsContainer.innerHTML = '';
+        while (searchResultsContainer.firstChild) {
+            searchResultsContainer.removeChild(searchResultsContainer.firstChild);
+        }
+
         const iconArtist = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>`;
         const iconAlbum = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z" /></svg>`;
         const iconTrack = `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,3V12.26C11.5,12.09 11,12 10.5,12C8,12 6,14 6,16.5C6,19 8,21 10.5,21C13,21 15,19 15,16.5V6H18V3H12Z" /></svg>`;
 
         if (!artists.length && !albums.length && !tracks.length) {
-            searchResultsContainer.innerHTML = '<div class="search-no-results">Ничего не найдено</div>';
+            const noResults = document.createElement('div');
+            noResults.className = 'search-no-results';
+            noResults.textContent = 'Ничего не найдено';
+            searchResultsContainer.appendChild(noResults);
             return;
         }
 
@@ -261,19 +302,50 @@ if (searchInput && searchResultsContainer) {
         };
 
         const createItem = (item, type) => {
-            const href = `href="${type}.html?id=${item.id}"`;
+            const link = document.createElement('a');
+            link.href = `${type}.html?id=${item.id}`;
+            link.className = 'search-result-item';
+            link.title = item.name || item.title;
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'search-item-icon';
             const icon = type === 'artist' ? iconArtist : (type === 'album' ? iconAlbum : iconTrack);
+            iconDiv.innerHTML = icon;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'search-item-info';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'search-item-title';
+            titleSpan.textContent = item.name || item.title;
+            infoDiv.appendChild(titleSpan);
+
             const artistNameText = getArtistNames(item);
-            const artistName = artistNameText ? `<span class="search-item-artist">${artistNameText}</span>` : '';
-            let title = item.name || item.title;
-            return `<a ${href} class="search-result-item" title="${title}"><div class="search-item-icon">${icon}</div><div class="search-item-info"><span class="search-item-title">${title}</span>${artistName}</div></a>`;
+            if(artistNameText){
+                const artistSpan = document.createElement('span');
+                artistSpan.className = 'search-item-artist';
+                artistSpan.textContent = artistNameText;
+                infoDiv.appendChild(artistSpan);
+            }
+            
+            link.appendChild(iconDiv);
+            link.appendChild(infoDiv);
+            return link;
         };
 
-        let html = '';
-        if (artists.length) html += '<div class="search-category-title">Артисты</div>' + artists.map(a => createItem(a, 'artist')).join('');
-        if (albums.length) html += '<div class="search-category-title">Альбомы</div>' + albums.map(a => createItem(a, 'album')).join('');
-        if (tracks.length) html += '<div class="search-category-title">Треки</div>' + tracks.map(t => createItem(t, 'track')).join('');
-        searchResultsContainer.innerHTML = html;
+        const createCategory = (title, items, type) => {
+            if (items.length) {
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'search-category-title';
+                titleDiv.textContent = title;
+                searchResultsContainer.appendChild(titleDiv);
+                items.forEach(item => searchResultsContainer.appendChild(createItem(item, type)));
+            }
+        };
+
+        createCategory('Артисты', artists, 'artist');
+        createCategory('Альбомы', albums, 'album');
+        createCategory('Треки', tracks, 'track');
     }
 
     async function performSearch(query) {
@@ -282,7 +354,14 @@ if (searchInput && searchResultsContainer) {
             return;
         }
         searchResultsContainer.style.display = 'block';
-        searchResultsContainer.innerHTML = '<div class="search-no-results">Идет поиск...</div>';
+        const searching = document.createElement('div');
+        searching.className = 'search-no-results';
+        searching.textContent = 'Идет поиск...';
+        while (searchResultsContainer.firstChild) {
+            searchResultsContainer.removeChild(searchResultsContainer.firstChild);
+        }
+        searchResultsContainer.appendChild(searching);
+
         try {
             const [artistsRes, albumsRes, tracksRes] = await Promise.all([
                 supabaseClient.from('artists').select('id, name').ilike('name', `%${query}%`).limit(3),
@@ -291,7 +370,13 @@ if (searchInput && searchResultsContainer) {
             ]);
             renderResults({ artists: artistsRes.data, albums: albumsRes.data, tracks: tracksRes.data });
         } catch (error) {
-            searchResultsContainer.innerHTML = '<div class="search-no-results">Ошибка поиска</div>';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'search-no-results';
+            errorDiv.textContent = 'Ошибка поиска';
+            while (searchResultsContainer.firstChild) {
+                searchResultsContainer.removeChild(searchResultsContainer.firstChild);
+            }
+            searchResultsContainer.appendChild(errorDiv);
         }
     }
     
@@ -308,9 +393,15 @@ if (notificationsContainer) {
     const notificationsList = document.getElementById('notifications-list');
     
     function renderNotifications(notifications) {
-        notificationsList.innerHTML = '';
+        while (notificationsList.firstChild) {
+            notificationsList.removeChild(notificationsList.firstChild);
+        }
+        
         if (!notifications || notifications.length === 0) {
-            notificationsList.innerHTML = '<p class="no-notifications">Уведомлений пока нет.</p>';
+            const noNotif = document.createElement('p');
+            noNotif.className = 'no-notifications';
+            noNotif.textContent = 'Уведомлений пока нет.';
+            notificationsList.appendChild(noNotif);
             return;
         }
         const lastReadTimestamp = parseInt(localStorage.getItem('notifications_last_read_timestamp') || '0');
@@ -318,16 +409,34 @@ if (notificationsContainer) {
             const creator = notif.creator_user_id;
             const finalAvatarUrl = creator?.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
             const avatarUrl = getTransformedImageUrl(finalAvatarUrl, { width: 80, height: 80, resize: 'cover' });
+            
             const item = document.createElement('a');
             item.href = notif.link_url || '#';
             item.className = 'notification-item';
-            if (new Date(notif.created_at).getTime() > lastReadTimestamp) item.classList.add('is-unread');
-            item.innerHTML = `
-                <img src="${avatarUrl}" alt="Аватар" class="notification-avatar">
-                <div class="notification-body">
-                    <p class="notification-content">${notif.content}</p>
-                    <p class="notification-date">${timeAgo(notif.created_at)}</p>
-                </div>`;
+            if (new Date(notif.created_at).getTime() > lastReadTimestamp) {
+                item.classList.add('is-unread');
+            }
+
+            const img = document.createElement('img');
+            img.src = avatarUrl;
+            img.alt = 'Аватар';
+            img.className = 'notification-avatar';
+            
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'notification-body';
+
+            const contentP = document.createElement('p');
+            contentP.className = 'notification-content';
+            contentP.innerHTML = notif.content;
+
+            const dateP = document.createElement('p');
+            dateP.className = 'notification-date';
+            dateP.textContent = timeAgo(notif.created_at);
+
+            bodyDiv.appendChild(contentP);
+            bodyDiv.appendChild(dateP);
+            item.appendChild(img);
+            item.appendChild(bodyDiv);
             notificationsList.appendChild(item);
         });
     }
@@ -365,7 +474,13 @@ if (notificationsContainer) {
             .eq('recipient_user_id', session.user.id)
             .order('created_at', { ascending: false }).limit(15);
         if (error) {
-            notificationsList.innerHTML = '<p class="no-notifications">Ошибка загрузки.</p>';
+            while (notificationsList.firstChild) {
+                notificationsList.removeChild(notificationsList.firstChild);
+            }
+            const errorP = document.createElement('p');
+            errorP.className = 'no-notifications';
+            errorP.textContent = 'Ошибка загрузки.';
+            notificationsList.appendChild(errorP);
             return;
         }
         renderNotifications(data);

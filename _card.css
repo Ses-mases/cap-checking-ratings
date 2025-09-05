@@ -1,0 +1,154 @@
+/* ==========================================================================
+   CARD COMPONENTS
+   ========================================================================== */
+
+/* --- Base Card Style --- */
+.card-link { 
+    text-decoration: none; 
+    color: inherit; 
+    display: block; 
+    flex-shrink: 0; 
+}
+
+.card {
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background-color: var(--card-bg);
+    overflow: hidden;
+    transition: var(--transition-main);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.card-link:hover .card { 
+    transform: translateY(-5px); 
+    box-shadow: var(--shadow-md); 
+    border-color: var(--border-color); 
+}
+.card img { 
+    width: 100%; 
+    aspect-ratio: 1 / 1; 
+    object-fit: cover; 
+}
+.card-body { 
+    padding: 1rem; 
+    flex-grow: 1; 
+}
+.card-body h3 { 
+    margin: 0 0 0.25rem 0; 
+}
+.card-body p { 
+    margin: 0; 
+    color: var(--text-color-secondary); 
+    font-size: 0.9em; 
+}
+
+
+/* --- Image Overlay Card (Index/Artist Pages) --- */
+#recent-tracks-section .card, 
+#artist-albums-section .card {
+    position: relative;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    height: 100%;
+}
+#recent-tracks-section .card-link, 
+#artist-albums-section .card-link {
+    width: 280px;
+    height: 280px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.3s ease;
+}
+#recent-tracks-section .card-link:hover, 
+#artist-albums-section .card-link:hover {
+    box-shadow: var(--shadow-md);
+}
+#recent-tracks-section .card-link:hover .card, 
+#artist-albums-section .card-link:hover .card {
+    transform: none; /* Отключаем старый эффект */
+    box-shadow: none;
+    border: none;
+}
+#recent-tracks-section .card img, 
+#artist-albums-section .card img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+#recent-tracks-section .card-link:hover img, 
+#artist-albums-section .card-link:hover img {
+    transform: scale(1.1);
+}
+#recent-tracks-section .card-body, 
+#artist-albums-section .card-body {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; z-index: 2;
+    padding: 1.5rem 1.25rem;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%);
+    color: white;
+}
+#recent-tracks-section .card-body h3, 
+#artist-albums-section .card-body h3 {
+    font-size: 1.3em;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+#recent-tracks-section .card-body p, 
+#artist-albums-section .card-body p {
+    color: white;
+    opacity: 0.8;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+
+/* --- Top Releases Card (Index Page) --- */
+.top-card-link { 
+    flex: 0 0 380px; 
+}
+.top-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background-color: var(--card-bg);
+    overflow: hidden;
+    display: flex; flex-direction: column; height: 100%;
+}
+.top-card-link:hover .top-card {
+    box-shadow: var(--shadow-md);
+    border-color: #dee2e6;
+}
+.top-card-header { display: flex; gap: 1rem; padding: 1.25rem; align-items: flex-start; }
+.top-card-cover { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-md); flex-shrink: 0; }
+.top-card-info { flex-grow: 1; min-width: 0; }
+.top-card-title { font-size: 1.2em; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-card-artist { color: var(--text-color-secondary); font-size: 1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-card-score { margin-top: 0.5rem; font-size: 1.3em; font-weight: 700; }
+.top-card-score .score-label { font-size: 0.7em; font-weight: 500; color: var(--text-color-secondary); margin-left: 0.25rem; }
+.top-card-body { padding: 0 1.25rem 1.25rem 1.25rem; flex-grow: 1; }
+.top-card-review {
+    font-style: italic; color: var(--text-color-secondary); padding-left: 1rem; border-left: 3px solid var(--border-color);
+    font-size: 0.9em; display: -webkit-box; -webkit-line-clamp: 3;
+    line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0;
+}
+.top-card-review-author { display: block; font-weight: 500; margin-top: 0.5rem; font-size: 0.8em; color: var(--text-color); }
+.top-card-review.no-review { border-left: none; padding-left: 0; font-style: normal; }
+.top-card-link.is-first .top-card { border-color: #FFD700; background: linear-gradient(to bottom, #fff, #fff9e6); }
+.top-card-link.is-second .top-card { border-color: #C0C0C0; background: linear-gradient(to bottom, #fff, #f5f5f5); }
+.top-card-link.is-third .top-card { border-color: #CD7F32; background: linear-gradient(to bottom, #fff, #f5efe6); }
+
+
+/* --- Responsive Cards --- */
+@media (max-width: 600px) {
+    #recent-tracks-section .card-link, 
+    #artist-albums-section .card-link { 
+        flex: 0 0 200px; 
+        height: 200px; 
+    }
+    .top-card-link { 
+        flex: 0 0 300px; 
+    }
+}

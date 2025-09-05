@@ -137,7 +137,9 @@ async function handleWaitButtonClick() {
 }
 
 async function loadRecentReleases() {
-    recentTracksContainer.innerHTML = '';
+    while (recentTracksContainer.firstChild) {
+        recentTracksContainer.removeChild(recentTracksContainer.firstChild);
+    }
 
     try {
         const { data: albums, error: albumsError } = await supabaseClient
@@ -183,38 +185,59 @@ async function loadRecentReleases() {
             .slice(0, 12);
 
         if (allReleases.length === 0) {
-            recentTracksContainer.innerHTML = '<p>Новых релизов пока нет.</p>';
+            const p = document.createElement('p');
+            p.textContent = 'Новых релизов пока нет.';
+            recentTracksContainer.appendChild(p);
             return;
         }
 
         allReleases.forEach(release => {
             const cardLink = document.createElement('a');
             cardLink.href = release.link;
-            cardLink.classList.add('card-link');
-            const coverSource = release.coverUrl || 'https://via.placeholder.com/250';
+            cardLink.className = 'card-link';
+            
+            const card = document.createElement('div');
+            card.className = 'card';
 
-            cardLink.innerHTML = `
-                <div class="card">
-                    <img src="${coverSource}" alt="Обложка релиза ${release.title}" loading="lazy">
-                    <div class="card-body">
-                        <h3>${release.title}</h3>
-                        <p>${release.artistName}</p>
-                    </div>
-                </div>
-            `;
+            const img = document.createElement('img');
+            img.src = release.coverUrl || 'https://via.placeholder.com/250';
+            img.alt = `Обложка релиза ${release.title}`;
+            img.loading = 'lazy';
+            
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            const h3 = document.createElement('h3');
+            h3.textContent = release.title;
+            
+            const p = document.createElement('p');
+            p.textContent = release.artistName;
+
+            cardBody.appendChild(h3);
+            cardBody.appendChild(p);
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            cardLink.appendChild(card);
             recentTracksContainer.appendChild(cardLink);
         });
 
     } catch (error) {
         console.error('Ошибка при загрузке недавних релизов:', error);
-        recentTracksContainer.innerHTML = '<p>Не удалось загрузить релизы. Попробуйте обновить страницу.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Не удалось загрузить релизы. Попробуйте обновить страницу.';
+        recentTracksContainer.appendChild(p);
     }
 }
 
 function renderTopReleases(container, releases, type) {
-    container.innerHTML = '';
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
     if (!releases || releases.length === 0) {
-        container.innerHTML = `<p>Нет данных для отображения.</p>`;
+        const p = document.createElement('p');
+        p.textContent = 'Нет данных для отображения.';
+        container.appendChild(p);
         return;
     }
 
@@ -223,40 +246,72 @@ function renderTopReleases(container, releases, type) {
     releases.forEach((release, index) => {
         const cardLink = document.createElement('a');
         cardLink.href = release.link;
-        cardLink.classList.add('top-card-link');
+        cardLink.className = 'top-card-link';
         if (index < 3) {
             cardLink.classList.add(placeClasses[index]);
         }
 
-        const coverSource = release.coverUrl || 'https://via.placeholder.com/90';
-        const scoreLabel = type === 'album' ? 'Экспертная' : 'Средняя';
-        const scoreFormatted = release.averageScore.toFixed(2);
+        const topCard = document.createElement('div');
+        topCard.className = 'top-card';
+        
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'top-card-header';
 
-        const reviewHtml = (release.topReview && release.topReview.text)
-            ? `<p class="top-card-review">
-                   "${release.topReview.text}"
-                   <span class="top-card-review-author">– ${release.topReview.author}</span>
-               </p>`
-            : `<p class="top-card-review no-review">Рецензий за этот период нет.</p>`;
+        const img = document.createElement('img');
+        img.src = release.coverUrl || 'https://via.placeholder.com/90';
+        img.alt = `Обложка релиза ${release.title}`;
+        img.className = 'top-card-cover';
+        img.loading = 'lazy';
 
-        cardLink.innerHTML = `
-            <div class="top-card">
-                <div class="top-card-header">
-                    <img src="${coverSource}" alt="Обложка релиза ${release.title}" class="top-card-cover" loading="lazy">
-                    <div class="top-card-info">
-                        <h4 class="top-card-title">${release.title}</h4>
-                        <p class="top-card-artist">${release.artistName}</p>
-                        <div class="top-card-score" style="color: ${getScoreColor(release.averageScore)}">
-                           ${scoreFormatted}
-                           <span class="score-label">${scoreLabel}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="top-card-body">
-                    ${reviewHtml}
-                </div>
-            </div>
-        `;
+        const cardInfo = document.createElement('div');
+        cardInfo.className = 'top-card-info';
+
+        const titleH4 = document.createElement('h4');
+        titleH4.className = 'top-card-title';
+        titleH4.textContent = release.title;
+
+        const artistP = document.createElement('p');
+        artistP.className = 'top-card-artist';
+        artistP.textContent = release.artistName;
+        
+        const scoreDiv = document.createElement('div');
+        scoreDiv.className = 'top-card-score';
+        scoreDiv.style.color = getScoreColor(release.averageScore);
+        scoreDiv.textContent = release.averageScore.toFixed(2);
+        
+        const scoreLabelSpan = document.createElement('span');
+        scoreLabelSpan.className = 'score-label';
+        scoreLabelSpan.textContent = type === 'album' ? 'Экспертная' : 'Средняя';
+        scoreDiv.appendChild(scoreLabelSpan);
+        
+        cardInfo.appendChild(titleH4);
+        cardInfo.appendChild(artistP);
+        cardInfo.appendChild(scoreDiv);
+        
+        cardHeader.appendChild(img);
+        cardHeader.appendChild(cardInfo);
+        
+        const cardBody = document.createElement('div');
+        cardBody.className = 'top-card-body';
+        
+        const reviewP = document.createElement('p');
+        if (release.topReview && release.topReview.text) {
+            reviewP.className = 'top-card-review';
+            reviewP.textContent = `"${release.topReview.text}"`;
+            
+            const authorSpan = document.createElement('span');
+            authorSpan.className = 'top-card-review-author';
+            authorSpan.textContent = `– ${release.topReview.author}`;
+            reviewP.appendChild(authorSpan);
+        } else {
+            reviewP.className = 'top-card-review no-review';
+            reviewP.textContent = 'Рецензий за этот период нет.';
+        }
+        cardBody.appendChild(reviewP);
+
+        topCard.appendChild(cardHeader);
+        topCard.appendChild(cardBody);
+        cardLink.appendChild(topCard);
         container.appendChild(cardLink);
     });
 }
@@ -293,7 +348,9 @@ async function loadTopTracks() {
 
     } catch (error) {
         console.error('Ошибка при загрузке лучших треков:', error);
-        topTracksContainer.innerHTML = '<p>Не удалось загрузить данные.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Не удалось загрузить данные.';
+        topTracksContainer.appendChild(p);
     }
 }
 
@@ -321,7 +378,9 @@ async function loadTopAlbums() {
 
     } catch (error) {
         console.error('Ошибка при загрузке лучших альбомов:', error);
-        topAlbumsContainer.innerHTML = '<p>Не удалось загрузить данные.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Не удалось загрузить данные.';
+        topAlbumsContainer.appendChild(p);
     }
 }
 

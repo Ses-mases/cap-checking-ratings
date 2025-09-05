@@ -41,23 +41,54 @@ function renderTrackRatings(ratings) {
             if (!rating.tracks) return;
             const item = document.createElement('div');
             item.className = 'review-item';
-            const reviewHtml = rating.review_text ? `<p class="review-item-text">"${rating.review_text}"</p>` : '';
+
             const finalCoverUrl = rating.tracks.cover_art_url || rating.tracks.albums?.cover_art_url;
             const coverUrl = getTransformedImageUrl(finalCoverUrl, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
+            const img = document.createElement('img');
+            img.src = coverUrl;
+            img.alt = 'Обложка';
+            img.className = 'review-item-cover';
+            img.loading = 'lazy';
 
-            item.innerHTML = `
-                <img src="${coverUrl}" alt="Обложка" class="review-item-cover" loading="lazy">
-                <div class="review-item-body">
-                    <div class="review-item-header">
-                        <a href="track.html?id=${rating.tracks.id}" class="review-item-title">${rating.tracks.title}</a>
-                        <span class="review-item-score">Оценка: <strong style="color: ${getScoreColor(rating.score)}">${rating.score}/30</strong></span>
-                    </div>
-                    ${reviewHtml}
-                </div>`;
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'review-item-body';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'review-item-header';
+            
+            const titleLink = document.createElement('a');
+            titleLink.href = `track.html?id=${rating.tracks.id}`;
+            titleLink.className = 'review-item-title';
+            titleLink.textContent = rating.tracks.title;
+
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'review-item-score';
+            scoreSpan.textContent = 'Оценка: ';
+
+            const scoreStrong = document.createElement('strong');
+            scoreStrong.style.color = getScoreColor(rating.score);
+            scoreStrong.textContent = `${rating.score}/30`;
+            scoreSpan.appendChild(scoreStrong);
+
+            headerDiv.appendChild(titleLink);
+            headerDiv.appendChild(scoreSpan);
+            bodyDiv.appendChild(headerDiv);
+
+            if (rating.review_text) {
+                const reviewP = document.createElement('p');
+                reviewP.className = 'review-item-text';
+                reviewP.textContent = `"${rating.review_text}"`;
+                bodyDiv.appendChild(reviewP);
+            }
+            
+            item.appendChild(img);
+            item.appendChild(bodyDiv);
             trackRatingsList.appendChild(item);
         });
     } else {
-        trackRatingsList.innerHTML = '<p>Пользователь еще не ставил оценок трекам.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Пользователь еще не ставил оценок трекам.';
+        trackRatingsList.appendChild(p);
     }
 }
 
@@ -68,22 +99,53 @@ function renderAlbumRatings(ratings) {
             if (!rating.albums) return;
             const item = document.createElement('div');
             item.className = 'review-item';
-            const reviewHtml = rating.review_text ? `<p class="review-item-text">"${rating.review_text}"</p>` : '';
-            const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
             
-            item.innerHTML = `
-                <img src="${coverUrl}" alt="Обложка" class="review-item-cover" loading="lazy">
-                <div class="review-item-body">
-                     <div class="review-item-header">
-                        <a href="album.html?id=${rating.albums.id}" class="review-item-title">${rating.albums.title}</a>
-                        <span class="review-item-score">Оценка: <strong style="color: ${getScoreColor(rating.final_score)}">${parseFloat(rating.final_score).toFixed(2)}/30</strong></span>
-                    </div>
-                    ${reviewHtml}
-                </div>`;
+            const coverUrl = getTransformedImageUrl(rating.albums.cover_art_url, { width: 120, height: 120, resize: 'cover' }) || 'https://via.placeholder.com/60';
+            const img = document.createElement('img');
+            img.src = coverUrl;
+            img.alt = 'Обложка';
+            img.className = 'review-item-cover';
+            img.loading = 'lazy';
+            
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'review-item-body';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'review-item-header';
+
+            const titleLink = document.createElement('a');
+            titleLink.href = `album.html?id=${rating.albums.id}`;
+            titleLink.className = 'review-item-title';
+            titleLink.textContent = rating.albums.title;
+
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'review-item-score';
+            scoreSpan.textContent = 'Оценка: ';
+
+            const scoreStrong = document.createElement('strong');
+            scoreStrong.style.color = getScoreColor(rating.final_score);
+            scoreStrong.textContent = `${parseFloat(rating.final_score).toFixed(2)}/30`;
+            scoreSpan.appendChild(scoreStrong);
+
+            headerDiv.appendChild(titleLink);
+            headerDiv.appendChild(scoreSpan);
+            bodyDiv.appendChild(headerDiv);
+
+            if (rating.review_text) {
+                const reviewP = document.createElement('p');
+                reviewP.className = 'review-item-text';
+                reviewP.textContent = `"${rating.review_text}"`;
+                bodyDiv.appendChild(reviewP);
+            }
+
+            item.appendChild(img);
+            item.appendChild(bodyDiv);
             albumRatingsList.appendChild(item);
         });
     } else {
-        albumRatingsList.innerHTML = '<p>Пользователь еще не ставил оценок альбомам.</p>';
+        const p = document.createElement('p');
+        p.textContent = 'Пользователь еще не ставил оценок альбомам.';
+        albumRatingsList.appendChild(p);
     }
 }
 
