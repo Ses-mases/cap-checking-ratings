@@ -378,6 +378,21 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
 .faq-item p { color: var(--text-color-secondary); }
 .faq-item p strong { color: var(--text-color); font-weight: 500; }
 
+/* ФУТЕР */
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.footer-links a {
+    color: var(--text-color-secondary);
+    font-size: 0.9em;
+}
+.footer-links a:hover {
+    color: var(--primary-color);
+}
 
 /* 5. УТИЛИТЫ И АДАПТИВНОСТЬ */
 .hidden { display: none !important; }

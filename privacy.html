@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Политика конфиденциальности | Cap Checking Ratings</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="card.css">
+    <link rel="stylesheet" href="profile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div id="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"></path></svg>
+                <input type="search" id="search-input" placeholder="Поиск артистов, альбомов и треков...">
+            </div>
+            <div id="search-results-container"></div>
+        </div>
+        
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Cap Checking Ratings</a></h1>
+        
+        <div class="nav-wrapper">
+            <div id="notifications-container">
+                <button id="notification-bell-button" class="icon-button" aria-label="Уведомления">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.93 6 11V16L4 18V19H20V18L18 16Z"></path></svg>
+                    <span id="notifications-count" class="notification-count"></span>
+                </button>
+                <div id="notifications-dropdown" class="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Уведомления</h3>
+                    </div>
+                    <div id="notifications-list">
+                        <p class="no-notifications">Новых уведомлений нет.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="menu-toggle-button" class="icon-button" aria-label="Меню" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"></path></svg>
+            </button>
+            
+            <nav id="main-nav">
+                <a href="index.html">Главная</a>
+                <a href="legends.html">Зал Легенд</a>
+                <a href="faq.html">FAQ</a>
+                <a href="profile.html" id="profile-link">Мой кабинет</a>
+            </nav>
+        </div>
+    </header>
+    <div class="menu-overlay"></div>
+
+    <main>
+        <section id="privacy-section" style="max-width: 800px; margin: auto;">
+            <h2>Политика конфиденциальности</h2>
+            <p style="color: var(--text-color-secondary); margin-bottom: 2rem;">Дата вступления в силу: 5 сентября 2025 г.</p>
+
+            <div class="faq-item">
+                <h3>1. Какие персональные данные мы собираем?</h3>
+                <p>Мы собираем информацию, чтобы предоставлять и улучшать наш сервис. Типы собираемых данных:</p>
+                <ul>
+                    <li><strong>Данные, предоставляемые вами:</strong> При регистрации мы просим вас указать email и пароль (хранится в зашифрованном виде). Вы также можете указать имя пользователя и загрузить аватар.</li>
+                    <li><strong>Контент, который вы создаете:</strong> Мы сохраняем ваши оценки и рецензии на музыкальные релизы.</li>
+                    <li><strong>Данные, собираемые автоматически:</strong> В целях безопасности и аналитики мы можем собирать ваш IP-адрес, информацию о браузере и операционной системе, а также данные о вашем взаимодействии с сайтом (например, просмотренные страницы).</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h3>2. Цели сбора данных</h3>
+                <p>Собранные данные используются для следующих целей:</p>
+                <ul>
+                    <li><strong>Аутентификация и управление аккаунтом:</strong> Для обеспечения вашего входа в систему и управления профилем.</li>
+                    <li><strong>Предоставление функционала сайта:</strong> Для отображения ваших оценок, рецензий и достижений.</li>
+                    <li><strong>Уведомления:</strong> Для отправки вам уведомлений, связанных с активностью на сайте (например, если вы являетесь артистом и на ваш релиз оставили рецензию).</li>
+                    <li><strong>Аналитика и улучшение сервиса:</strong> Для анализа того, как используется наш сайт, чтобы мы могли сделать его лучше и удобнее.</li>
+                    <li><strong>Безопасность:</strong> Для защиты от мошенничества, спама и других злоупотреблений.</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h3>3. Как мы защищаем ваши данные?</h3>
+                <p>Мы серьезно относимся к безопасности ваших данных. Мы используем стандартные отраслевые меры безопасности, включая SSL/TLS шифрование для передачи данных, хеширование паролей и ограничение доступа к персональным данным внутри нашей команды.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>4. Передаются ли данные третьим лицам?</h3>
+                <p>Мы не продаем и не передаем ваши персональные данные третьим лицам в маркетинговых целях. Мы можем делиться анонимизированными, агрегированными данными с аналитическими сервисами для улучшения работы сайта. Вся инфраструктура нашего сайта поддерживается провайдером Supabase, который обеспечивает высокий уровень безопасности хранения данных.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>5. Ваши права</h3>
+                <p>Вы имеете право на доступ, изменение и удаление своих персональных данных. Вы можете изменить имя пользователя и аватар в любое время на странице своего профиля. Для полного удаления аккаунта и связанных с ним данных, пожалуйста, свяжитесь с нашей службой поддержки.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>6. Использование cookie-файлов</h3>
+                <p>Мы используем cookie-файлы — небольшие текстовые файлы, хранящиеся на вашем устройстве. Они необходимы для поддержания вашей сессии аутентификации (чтобы вам не приходилось входить в систему каждый раз). Мы не используем cookie для отслеживания в рекламных целях. Вы можете отключить cookie в настройках своего браузера, но это может нарушить работу некоторых функций сайта.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="terms.html">Пользовательское соглашение</a>
+            <a href="privacy.html">Политика конфиденциальности</a>
+        </div>
+        <p>&copy; 2025 Cap Checking Ratings</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="common.js" defer></script> 
+</body>
+</html>

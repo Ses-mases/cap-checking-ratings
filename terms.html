@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользовательское соглашение | Cap Checking Ratings</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="card.css">
+    <link rel="stylesheet" href="profile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div id="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"></path></svg>
+                <input type="search" id="search-input" placeholder="Поиск артистов, альбомов и треков...">
+            </div>
+            <div id="search-results-container"></div>
+        </div>
+        
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Cap Checking Ratings</a></h1>
+        
+        <div class="nav-wrapper">
+            <div id="notifications-container">
+                <button id="notification-bell-button" class="icon-button" aria-label="Уведомления">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.93 6 11V16L4 18V19H20V18L18 16Z"></path></svg>
+                    <span id="notifications-count" class="notification-count"></span>
+                </button>
+                <div id="notifications-dropdown" class="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Уведомления</h3>
+                    </div>
+                    <div id="notifications-list">
+                        <p class="no-notifications">Новых уведомлений нет.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="menu-toggle-button" class="icon-button" aria-label="Меню" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"></path></svg>
+            </button>
+            
+            <nav id="main-nav">
+                <a href="index.html">Главная</a>
+                <a href="legends.html">Зал Легенд</a>
+                <a href="faq.html">FAQ</a>
+                <a href="profile.html" id="profile-link">Мой кабинет</a>
+            </nav>
+        </div>
+    </header>
+    <div class="menu-overlay"></div>
+
+    <main>
+        <section id="terms-section" style="max-width: 800px; margin: auto;">
+            <h2>Пользовательское соглашение</h2>
+            <p style="color: var(--text-color-secondary); margin-bottom: 2rem;">Дата вступления в силу: 5 сентября 2025 г.</p>
+
+            <div class="faq-item">
+                <h3>1. Регистрация и поведение на сайте</h3>
+                <p>Регистрируясь на сайте Cap Checking Ratings, вы соглашаетесь предоставлять актуальную и достоверную информацию. Вы несете полную ответственность за сохранность вашего пароля и за все действия, совершенные под вашей учетной записью. Запрещается создавать несколько аккаунтов для одного пользователя.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>2. Права и обязанности</h3>
+                <p><strong>Пользователь обязан:</strong> Соблюдать данное соглашение и действующее законодательство. Уважительно относиться к другим пользователям и администрации сайта. Не использовать сайт в незаконных или вредоносных целях.</p>
+                <p><strong>Администрация имеет право:</strong> Модерировать и удалять любой контент, нарушающий правила. Вносить изменения в работу сайта и данное соглашение без предварительного уведомления. Блокировать аккаунты пользователей, нарушающих правила.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>3. Правила публикации контента</h3>
+                <p>Все публикуемые вами рецензии и комментарии должны быть конструктивными и относиться к обсуждаемому музыкальному релизу. <strong>На сайте запрещено:</strong></p>
+                <ul>
+                    <li>Публикация оскорблений, угроз, нецензурной лексики, а также разжигание ненависти по любому признаку.</li>
+                    <li>Распространение спама, рекламы и ссылок на сторонние ресурсы, не относящиеся к теме.</li>
+                    <li>Плагиат — полное или частичное копирование чужих рецензий без указания авторства.</li>
+                    <li>Публикация незаконных материалов, а также личной информации третьих лиц без их согласия.</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h3>4. Блокировка аккаунта</h3>
+                <p>Администрация сайта оставляет за собой право временно или перманентно заблокировать учетную запись пользователя за грубое или систематическое нарушение правил, изложенных в данном соглашении. Действия, которые могут привести к блокировке, включают, но не ограничиваются: спам, оскорбление других участников, попытки взлома или нанесения вреда сайту.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>5. Ограничение ответственности</h3>
+                <p>Сайт Cap Checking Ratings предоставляется "как есть". Администрация не несет ответственности за содержание рецензий и комментариев, оставленных пользователями, так как они отражают исключительно их личное мнение. Мы не гарантируем постоянную и безошибочную работу сайта и не несем ответственности за возможные убытки, понесенные пользователями в результате его использования или невозможности использования.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="terms.html">Пользовательское соглашение</a>
+            <a href="privacy.html">Политика конфиденциальности</a>
+        </div>
+        <p>&copy; 2025 Cap Checking Ratings</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="common.js" defer></script> 
+</body>
+</html>
