@@ -3,18 +3,20 @@ const recentTracksContainer = document.getElementById('recent-tracks-container')
 const profileLink = document.getElementById('profile-link');
 
 const announcementOverlay = document.getElementById('announcement-modal-overlay');
+const announcementModal = document.getElementById('announcement-modal');
 const closeAnnouncementBtn = document.getElementById('close-announcement-btn');
 const announcementBody = document.getElementById('announcement-body');
 const announcementTitle = document.getElementById('announcement-title');
 const announcementDescription = document.getElementById('announcement-description');
 const announcementDate = document.getElementById('announcement-date');
 const waitButton = document.getElementById('wait-button');
-let currentAnnouncementId = null; 
+let currentAnnouncementId = null;
+let cleanupAnnouncementFocus = null;
 
 const topTracksContainer = document.getElementById('top-tracks-container');
 const topAlbumsContainer = document.getElementById('top-albums-container');
 
-// ... (функции initializeScrollers, handleAnnouncements, closeAnnouncementModal, handleWaitButtonClick остаются без изменений) ...
+// ФУНКЦИИ
 function initializeScrollers() {
     document.querySelectorAll('.scroll-wrapper').forEach(wrapper => {
         const scroller = wrapper.querySelector('.horizontal-scroll-container');
@@ -23,14 +25,15 @@ function initializeScrollers() {
 
         if (!scroller || !prevBtn || !nextBtn) return;
 
-        function updateArrowState() {
+        const updateArrowState = () => {
+            if (!scroller) return;
             const scrollLeft = Math.round(scroller.scrollLeft);
             const scrollWidth = scroller.scrollWidth;
             const clientWidth = scroller.clientWidth;
 
             prevBtn.classList.toggle('hidden', scrollLeft <= 0);
             nextBtn.classList.toggle('hidden', scrollLeft >= scrollWidth - clientWidth - 1);
-        }
+        };
 
         prevBtn.addEventListener('click', () => {
             const scrollAmount = scroller.clientWidth * 0.8;
@@ -42,8 +45,9 @@ function initializeScrollers() {
             scroller.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         });
 
-        scroller.addEventListener('scroll', updateArrowState);
-        new ResizeObserver(updateArrowState).observe(scroller);
+        scroller.addEventListener('scroll', updateArrowState, { passive: true });
+        const resizeObserver = new ResizeObserver(updateArrowState);
+        resizeObserver.observe(scroller);
 
         updateArrowState();
     });
@@ -55,7 +59,6 @@ async function handleAnnouncements() {
     const oneDay = 24 * 60 * 60 * 1000;
 
     if (lastShown && (now - lastShown < oneDay)) {
-        console.log('Анонс уже был показан сегодня.');
         return;
     }
 
@@ -65,12 +68,10 @@ async function handleAnnouncements() {
             .select('*')
             .order('id', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
         if (error) {
-            if (error.code !== 'PGRST116') {
-                 console.error('Ошибка загрузки анонса:', error);
-            }
+            console.error('Ошибка загрузки анонса:', error);
             return;
         }
 
@@ -80,7 +81,7 @@ async function handleAnnouncements() {
             preloadLink.as = 'image';
             preloadLink.href = data.image_url;
             document.head.appendChild(preloadLink);
-            
+
             currentAnnouncementId = data.id;
 
             announcementTitle.textContent = data.title;
@@ -100,7 +101,9 @@ async function handleAnnouncements() {
             }
 
             announcementOverlay.classList.add('is-visible');
-            localStorage.setItem('announcementLastShown', now);
+            if(cleanupAnnouncementFocus) cleanupAnnouncementFocus();
+            cleanupAnnouncementFocus = trapFocus(announcementModal);
+            localStorage.setItem('announcementLastShown', now.toString());
         }
 
     } catch (e) {
@@ -109,7 +112,10 @@ async function handleAnnouncements() {
 }
 
 function closeAnnouncementModal() {
-    announcementOverlay.classList.remove('is-visible');
+    if (announcementOverlay) {
+        announcementOverlay.classList.remove('is-visible');
+        if(cleanupAnnouncementFocus) cleanupAnnouncementFocus();
+    }
 }
 
 async function handleWaitButtonClick() {
@@ -126,27 +132,14 @@ async function handleWaitButtonClick() {
         waitButton.disabled = false;
     } else {
         localStorage.setItem(`announcement_waited_${currentAnnouncementId}`, 'true');
-        console.log('Счетчик для анонса', currentAnnouncementId, 'успешно увеличен.');
         setTimeout(closeAnnouncementModal, 300);
     }
 }
 
-if (announcementOverlay && closeAnnouncementBtn && waitButton) {
-    closeAnnouncementBtn.addEventListener('click', closeAnnouncementModal);
-    waitButton.addEventListener('click', handleWaitButtonClick);
-    announcementOverlay.addEventListener('click', (e) => {
-        if (e.target === announcementOverlay) {
-            closeAnnouncementModal();
-        }
-    });
-}
-
 async function loadRecentReleases() {
-    const recentReleasesContainer = document.getElementById('recent-tracks-container');
-    recentReleasesContainer.innerHTML = '';
+    recentTracksContainer.innerHTML = '';
 
     try {
-        // ИЗМЕНЕНО: Запрос артистов для альбомов
         const { data: albums, error: albumsError } = await supabaseClient
             .from('albums')
             .select('id, title, cover_art_url, release_date, album_artists(artists(name))')
@@ -154,7 +147,6 @@ async function loadRecentReleases() {
             .limit(10);
         if (albumsError) throw albumsError;
 
-        // ИЗМЕНЕНО: Запрос артистов для синглов
         const { data: singles, error: singlesError } = await supabaseClient
             .from('tracks')
             .select('id, title, cover_art_url, albums(cover_art_url), release_date, track_artists(artists(name))')
@@ -163,22 +155,25 @@ async function loadRecentReleases() {
             .limit(10);
         if (singlesError) throw singlesError;
 
-        // ИЗМЕНЕНО: Сборка имен артистов
+        const mapArtists = (artistsRelation) => {
+            if (!artistsRelation || artistsRelation.length === 0) return 'Неизвестный артист';
+            return artistsRelation.map(a => a.artists.name).join(', ');
+        };
+
         const mappedAlbums = albums.map(item => ({
             id: item.id,
             title: item.title,
-            artistName: item.album_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
+            artistName: mapArtists(item.album_artists),
             coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `album.html?id=${item.id}`,
             releaseDate: item.release_date
         }));
-        
-        // ИЗМЕНЕНО: Сборка имен артистов
+
         const mappedSingles = singles.map(item => ({
             id: item.id,
             title: item.title,
-            artistName: item.track_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
-            coverUrl: getTransformedImageUrl(item.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
+            artistName: mapArtists(item.track_artists),
+            coverUrl: getTransformedImageUrl(item.cover_art_url || item.albums?.cover_art_url, { width: 500, height: 500, resize: 'cover' }),
             link: `track.html?id=${item.id}`,
             releaseDate: item.release_date
         }));
@@ -186,9 +181,9 @@ async function loadRecentReleases() {
         const allReleases = [...mappedAlbums, ...mappedSingles]
             .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
             .slice(0, 12);
-        
+
         if (allReleases.length === 0) {
-            recentReleasesContainer.innerHTML = '<p>Новых релизов пока нет.</p>';
+            recentTracksContainer.innerHTML = '<p>Новых релизов пока нет.</p>';
             return;
         }
 
@@ -196,34 +191,33 @@ async function loadRecentReleases() {
             const cardLink = document.createElement('a');
             cardLink.href = release.link;
             cardLink.classList.add('card-link');
-            
             const coverSource = release.coverUrl || 'https://via.placeholder.com/250';
 
             cardLink.innerHTML = `
                 <div class="card">
-                    <img src="${coverSource}" alt="Обложка" loading="lazy">
+                    <img src="${coverSource}" alt="Обложка релиза ${release.title}" loading="lazy">
                     <div class="card-body">
                         <h3>${release.title}</h3>
                         <p>${release.artistName}</p>
                     </div>
                 </div>
             `;
-            recentReleasesContainer.appendChild(cardLink);
+            recentTracksContainer.appendChild(cardLink);
         });
 
     } catch (error) {
         console.error('Ошибка при загрузке недавних релизов:', error);
-        recentReleasesContainer.innerHTML = '<p>Не удалось загрузить релизы. Попробуйте обновить страницу.</p>';
+        recentTracksContainer.innerHTML = '<p>Не удалось загрузить релизы. Попробуйте обновить страницу.</p>';
     }
 }
 
 function renderTopReleases(container, releases, type) {
     container.innerHTML = '';
-    if (releases.length === 0) {
+    if (!releases || releases.length === 0) {
         container.innerHTML = `<p>Нет данных для отображения.</p>`;
         return;
     }
-    
+
     const placeClasses = ['is-first', 'is-second', 'is-third'];
 
     releases.forEach((release, index) => {
@@ -237,22 +231,18 @@ function renderTopReleases(container, releases, type) {
         const coverSource = release.coverUrl || 'https://via.placeholder.com/90';
         const scoreLabel = type === 'album' ? 'Экспертная' : 'Средняя';
         const scoreFormatted = release.averageScore.toFixed(2);
-        
-        let reviewHtml;
-        if (release.topReview && release.topReview.text) {
-             reviewHtml = `
-                <p class="top-card-review">
-                    "${release.topReview.text}"
-                    <span class="top-card-review-author">– ${release.topReview.author}</span>
-                </p>`;
-        } else {
-            reviewHtml = `<p class="top-card-review no-review">Рецензий за этот период нет.</p>`;
-        }
+
+        const reviewHtml = (release.topReview && release.topReview.text)
+            ? `<p class="top-card-review">
+                   "${release.topReview.text}"
+                   <span class="top-card-review-author">– ${release.topReview.author}</span>
+               </p>`
+            : `<p class="top-card-review no-review">Рецензий за этот период нет.</p>`;
 
         cardLink.innerHTML = `
             <div class="top-card">
                 <div class="top-card-header">
-                    <img src="${coverSource}" alt="Обложка" class="top-card-cover" loading="lazy">
+                    <img src="${coverSource}" alt="Обложка релиза ${release.title}" class="top-card-cover" loading="lazy">
                     <div class="top-card-info">
                         <h4 class="top-card-title">${release.title}</h4>
                         <p class="top-card-artist">${release.artistName}</p>
@@ -274,100 +264,30 @@ function renderTopReleases(container, releases, type) {
 
 async function loadTopTracks() {
     try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { data, error } = await supabaseClient.rpc('get_top_tracks_of_the_month');
 
-        const { data: recentRatings, error: ratingsError } = await supabaseClient
-            .from('ratings')
-            .select('track_id, score, review_text, profiles(username)')
-            .gt('created_at', thirtyDaysAgo.toISOString());
-            
-        if (ratingsError) throw ratingsError;
-
-        const trackStats = recentRatings.reduce((acc, rating) => {
-            const id = rating.track_id;
-            if (!acc[id]) {
-                acc[id] = {
-                    scores: [],
-                    topReview: { score: -1, text: null, author: null }
-                };
-            }
-            acc[id].scores.push(rating.score);
-            if (rating.score > acc[id].topReview.score) {
-                acc[id].topReview = { 
-                    score: rating.score, 
-                    text: rating.review_text,
-                    author: rating.profiles?.username || 'Аноним'
-                };
-            }
-            return acc;
-        }, {});
-
-        const trackScores = Object.keys(trackStats).map(id => {
-            const stats = trackStats[id];
-            const avgScore = stats.scores.reduce((sum, s) => sum + s, 0) / stats.scores.length;
-            return {
-                id: parseInt(id),
-                averageScore: avgScore,
-                topReview: stats.topReview
-            };
-        });
-
-        const top5TracksInfo = trackScores
-            .sort((a, b) => b.averageScore - a.averageScore)
-            .slice(0, 5);
-
-        if (top5TracksInfo.length === 0) {
-            renderTopReleases(topTracksContainer, [], 'track');
-            return;
-        }
-
-        const top5TrackIds = top5TracksInfo.map(t => t.id);
-        // ИЗМЕНЕНО: Запрос теперь включает артистов
-        const { data: tracks, error: tracksError } = await supabaseClient
-            .from('tracks')
-            .select('id, title, cover_art_url, albums(cover_art_url), track_artists(is_main_artist, artists(name))')
-            .in('id', top5TrackIds);
-
-        if (tracksError) throw tracksError;
+        if (error) throw error;
         
-        // ИЗМЕНЕНО: Добавлена логика форматирования
-        const finalData = top5TracksInfo.map(info => {
-            const trackData = tracks.find(t => t.id === info.id);
+        const finalData = data.map(track => {
+            const artists = track.artists || [];
+            const mainArtists = artists.filter(a => a.is_main).map(a => a.name);
+            const featuredArtists = artists.filter(a => !a.is_main).map(a => a.name);
 
-            // ---- ИСПРАВЛЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ ----
-
-            // 1. Проверяем, нашлись ли данные для трека. Если нет - пропускаем.
-            if (!trackData) {
-                return null;
-            }
-
-            const finalCoverUrl = trackData.cover_art_url || trackData.albums?.cover_art_url;
-            let trackTitleWithFeatures = trackData.title;
-            const artists = trackData.track_artists || [];
-            
-            const mainArtists = artists
-                .filter(a => a.is_main_artist)
-                .map(a => a.artists.name);
-            const featuredArtists = artists
-                .filter(a => !a.is_main_artist)
-                .map(a => a.artists.name);
-
+            let trackTitleWithFeatures = track.title;
             if (featuredArtists.length > 0) {
                 trackTitleWithFeatures += ` (ft. ${featuredArtists.join(', ')})`;
             }
-            
+
             return {
-                ...info,
+                id: track.id,
                 title: trackTitleWithFeatures,
-                // Используем здесь только основных артистов для чистоты
                 artistName: mainArtists.join(', ') || 'Неизвестный артист',
-                coverUrl: getTransformedImageUrl(finalCoverUrl, { width: 180, height: 180, resize: 'cover' }),
-                link: `track.html?id=${info.id}`
+                coverUrl: getTransformedImageUrl(track.cover_art_url, { width: 180, height: 180, resize: 'cover' }),
+                link: `track.html?id=${track.id}`,
+                averageScore: track.average_score,
+                topReview: track.top_review ? { text: track.top_review.text, author: track.top_review.author } : null
             };
-        })
-        .filter(Boolean) // 2. Отфильтровываем 'призрачные' записи, которые мы пометили как null
-        .sort((a, b) => b.averageScore - a.averageScore);
+        });
 
         renderTopReleases(topTracksContainer, finalData, 'track');
 
@@ -379,72 +299,23 @@ async function loadTopTracks() {
 
 async function loadTopAlbums() {
     try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { data, error } = await supabaseClient.rpc('get_top_albums_of_the_month');
 
-        const { data: recentRatings, error: ratingsError } = await supabaseClient
-            .from('album_ratings')
-            .select('album_id, final_score, review_text, profiles(username)')
-            .gt('created_at', thirtyDaysAgo.toISOString());
-            
-        if (ratingsError) throw ratingsError;
-        
-        const albumStats = recentRatings.reduce((acc, rating) => {
-            const id = rating.album_id;
-            if (!acc[id]) {
-                acc[id] = {
-                    scores: [],
-                    topReview: { score: -1, text: null, author: null }
-                };
-            }
-            acc[id].scores.push(rating.final_score);
-            if (rating.final_score > acc[id].topReview.score) {
-                 acc[id].topReview = { 
-                    score: rating.final_score, 
-                    text: rating.review_text,
-                    author: rating.profiles?.username || 'Аноним'
-                };
-            }
-            return acc;
-        }, {});
+        if (error) throw error;
 
-        const albumScores = Object.keys(albumStats).map(id => {
-            const stats = albumStats[id];
-            const avgScore = stats.scores.reduce((sum, s) => sum + s, 0) / stats.scores.length;
+        const finalData = data.map(album => {
+            const artistNames = (album.artists || []).map(a => a.name).join(', ');
+
             return {
-                id: parseInt(id),
-                averageScore: avgScore,
-                topReview: stats.topReview
+                id: album.id,
+                title: album.title,
+                artistName: artistNames || 'Неизвестный артист',
+                coverUrl: getTransformedImageUrl(album.cover_art_url, { width: 180, height: 180, resize: 'cover' }),
+                link: `album.html?id=${album.id}`,
+                averageScore: album.average_score,
+                topReview: album.top_review ? { text: album.top_review.text, author: album.top_review.author } : null
             };
         });
-
-        const top5AlbumsInfo = albumScores
-            .sort((a, b) => b.averageScore - a.averageScore)
-            .slice(0, 5);
-
-        if (top5AlbumsInfo.length === 0) {
-            renderTopReleases(topAlbumsContainer, [], 'album');
-            return;
-        }
-
-        const top5AlbumIds = top5AlbumsInfo.map(a => a.id);
-        const { data: albums, error: albumsError } = await supabaseClient
-            .from('albums')
-            .select('id, title, cover_art_url, album_artists(artists(name))')
-            .in('id', top5AlbumIds);
-
-        if (albumsError) throw albumsError;
-        
-        const finalData = top5AlbumsInfo.map(info => {
-            const albumData = albums.find(a => a.id === info.id);
-            return {
-                ...info,
-                title: albumData.title,
-                artistName: albumData.album_artists.map(a => a.artists.name).join(', ') || 'Неизвестный артист',
-                coverUrl: getTransformedImageUrl(albumData.cover_art_url, { width: 180, height: 180, resize: 'cover' }),
-                link: `album.html?id=${info.id}`
-            };
-        }).sort((a, b) => b.averageScore - a.averageScore);
 
         renderTopReleases(topAlbumsContainer, finalData, 'album');
 
@@ -459,31 +330,40 @@ async function checkAuthAndLoadContent() {
 
     if (!session) {
         window.location.href = 'login.html';
-    } else {
-        console.log('Пользователь авторизован:', session.user.email);
-        if (profileLink) {
-             profileLink.style.display = 'inline';
-        }
-
-        const results = await Promise.allSettled([
-            loadRecentReleases(),
-            loadTopTracks(),
-            loadTopAlbums()
-        ]);
-
-        results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                const failedFunctionName = ['loadRecentReleases', 'loadTopTracks', 'loadTopAlbums'][index];
-                console.error(`Ошибка при выполнении ${failedFunctionName}:`, result.reason);
-                // На этом этапе можно отобразить сообщение об ошибке в соответствующем блоке
-            }
-        });
-        
-        handleAnnouncements();
-        initializeScrollers();
+        return;
     }
+
+    if (profileLink) {
+        profileLink.style.display = 'inline';
+    }
+
+    const results = await Promise.allSettled([
+        loadRecentReleases(),
+        loadTopTracks(),
+        loadTopAlbums()
+    ]);
+
+    results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+            const failedFunctionName = ['loadRecentReleases', 'loadTopTracks', 'loadTopAlbums'][index];
+            console.error(`Ошибка при выполнении ${failedFunctionName}:`, result.reason);
+        }
+    });
+
+    handleAnnouncements();
+    initializeScrollers();
 }
 
+// ИНИЦИАЛИЗАЦИЯ
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthAndLoadContent();
+    if (announcementOverlay && closeAnnouncementBtn && waitButton) {
+        closeAnnouncementBtn.addEventListener('click', closeAnnouncementModal);
+        waitButton.addEventListener('click', handleWaitButtonClick);
+        announcementOverlay.addEventListener('click', (e) => {
+            if (e.target === announcementOverlay) {
+                closeAnnouncementModal();
+            }
+        });
+    }
 });

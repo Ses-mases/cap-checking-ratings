@@ -13,16 +13,18 @@
     <header>
         <div id="search-container">
             <div class="search-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"></path></svg>
-                <input type="text" id="search-input" placeholder="Поиск артистов, альбомов и треков...">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"></path></svg>
+                <input type="search" id="search-input" placeholder="Поиск артистов, альбомов и треков...">
             </div>
             <div id="search-results-container"></div>
         </div>
-        <h1>Cap Checking Ratings</h1>
-        <nav>
+        
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Cap Checking Ratings</a></h1>
+        
+        <div class="nav-wrapper">
             <div id="notifications-container">
                 <button id="notification-bell-button" class="icon-button" aria-label="Уведомления">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.93 6 11V16L4 18V19H20V18L18 16Z"></path></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.93 6 11V16L4 18V19H20V18L18 16Z"></path></svg>
                     <span id="notifications-count" class="notification-count"></span>
                 </button>
                 <div id="notifications-dropdown" class="notifications-dropdown">
@@ -30,18 +32,24 @@
                         <h3>Уведомления</h3>
                     </div>
                     <div id="notifications-list">
-                        <!-- Уведомления будут вставлены сюда -->
                         <p class="no-notifications">Новых уведомлений нет.</p>
                     </div>
                 </div>
             </div>
-
-            <a href="index.html">Главная</a>
-            <a href="legends.html">Зал Легенд</a>
-            <a href="faq.html">FAQ</a>
-            <a href="profile.html" id="profile-link">Мой кабинет</a>
-        </nav>
+            
+            <button id="menu-toggle-button" class="icon-button" aria-label="Меню" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"></path></svg>
+            </button>
+            
+            <nav id="main-nav">
+                <a href="index.html">Главная</a>
+                <a href="legends.html">Зал Легенд</a>
+                <a href="faq.html">FAQ</a>
+                <a href="profile.html" id="profile-link">Мой кабинет</a>
+            </nav>
+        </div>
     </header>
+    <div class="menu-overlay"></div>
 
     <main class="profile-main">
         <div id="loading-indicator">Загрузка профиля...</div>
@@ -50,7 +58,7 @@
             <section id="profile-details-section" class="profile-card">
                 <div class="profile-header">
                     <div id="avatar-container">
-                        <img id="profile-avatar" src="https://via.placeholder.com/150" alt="Аватар" class="avatar">
+                        <img id="profile-avatar" src="https://via.placeholder.com/150" alt="Аватар пользователя" class="avatar">
                     </div>
                     <div class="profile-info">
                         <h2 id="profile-username">Загрузка...</h2>
@@ -62,7 +70,7 @@
                 <details class="accordion-item" open>
                     <summary>
                         <h3>Оценки треков</h3>
-                        <span class="accordion-icon"></span>
+                        <span class="accordion-icon" aria-hidden="true"></span>
                     </summary>
                     <div id="track-ratings-list" class="accordion-content">
                         <p>Загрузка оценок треков...</p>
@@ -71,7 +79,7 @@
                 <details class="accordion-item">
                     <summary>
                         <h3>Оценки альбомов</h3>
-                        <span class="accordion-icon"></span>
+                        <span class="accordion-icon" aria-hidden="true"></span>
                     </summary>
                     <div id="album-ratings-list" class="accordion-content">
                         <p>Загрузка оценок альбомов...</p>

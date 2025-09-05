@@ -15,6 +15,7 @@ const rateReleaseButton = document.getElementById('rate-release-button');
 
 // ЭЛЕМЕНТЫ МОДАЛЬНОГО ОКНА
 const modalOverlay = document.getElementById('album-rating-modal-overlay');
+const ratingModal = modalOverlay.querySelector('.modal');
 const albumRatingForm = document.getElementById('album-rating-form');
 const finalScoreDisplay = document.getElementById('final-score-display');
 const albumRatingStatus = document.getElementById('album-rating-status');
@@ -35,6 +36,7 @@ const cancelAlbumRatingBtn = document.getElementById('cancel-album-rating');
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 let currentUser = null;
 let currentAlbumId = null;
+let cleanupAlbumRatingFocus = null;
 
 // ФУНКЦИИ ЗАГРУЗКИ И ОТОБРАЖЕНИЯ
 async function loadAlbumData(albumId) {
@@ -152,13 +154,20 @@ async function loadUserAlbumRating() {
 }
 
 function initializeRatingModal() {
+    const closeModal = () => {
+        modalOverlay.classList.remove('is-visible');
+        if (cleanupAlbumRatingFocus) cleanupAlbumRatingFocus();
+    };
+
     rateReleaseButton.addEventListener('click', async () => {
         await loadUserAlbumRating();
         modalOverlay.classList.add('is-visible');
+        if (cleanupAlbumRatingFocus) cleanupAlbumRatingFocus();
+        cleanupAlbumRatingFocus = trapFocus(ratingModal);
     });
-    cancelAlbumRatingBtn.addEventListener('click', () => modalOverlay.classList.remove('is-visible'));
+    cancelAlbumRatingBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) modalOverlay.classList.remove('is-visible');
+        if (e.target === modalOverlay) closeModal();
     });
     albumRatingForm.addEventListener('input', (e) => {
         if (e.target.id === 'rarity-input') rarityValueSpan.textContent = e.target.value;
@@ -222,6 +231,7 @@ async function handleRatingSubmit(e) {
 
         setTimeout(() => {
             modalOverlay.classList.remove('is-visible');
+            if (cleanupAlbumRatingFocus) cleanupAlbumRatingFocus();
             albumRatingStatus.textContent = '';
             loadAlbumData(currentAlbumId);
         }, 1500);
