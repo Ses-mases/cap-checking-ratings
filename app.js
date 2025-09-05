@@ -17,6 +17,71 @@ const topTracksContainer = document.getElementById('top-tracks-container');
 const topAlbumsContainer = document.getElementById('top-albums-container');
 
 // ФУНКЦИИ
+
+// Анимация счетчика
+function animateCounter(element, finalCount) {
+    if (!element) return;
+    let start = 0;
+    const duration = 2000; // 2 секунды
+    const startTime = performance.now();
+
+    function updateCount(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        if (elapsedTime >= duration) {
+            element.textContent = finalCount.toLocaleString('ru-RU');
+            return;
+        }
+        const progress = elapsedTime / duration;
+        const currentCount = Math.floor(finalCount * progress);
+        element.textContent = currentCount.toLocaleString('ru-RU');
+        requestAnimationFrame(updateCount);
+    }
+
+    requestAnimationFrame(updateCount);
+}
+
+
+// Загрузка и отображение статистики
+async function loadAndDisplayStats() {
+    try {
+        const [
+            { count: tracksCount, error: e1 },
+            { count: albumsCount, error: e2 },
+            { count: artistsCount, error: e3 },
+            { count: usersCount, error: e4 },
+            { count: trackRatingsCount, error: e5 },
+            { count: albumRatingsCount, error: e6 }
+        ] = await Promise.all([
+            supabaseClient.from('tracks').select('*', { count: 'exact', head: true }),
+            supabaseClient.from('albums').select('*', { count: 'exact', head: true }),
+            supabaseClient.from('artists').select('*', { count: 'exact', head: true }),
+            supabaseClient.from('profiles').select('*', { count: 'exact', head: true }),
+            supabaseClient.from('ratings').select('*', { count: 'exact', head: true }),
+            supabaseClient.from('album_ratings').select('*', { count: 'exact', head: true })
+        ]);
+        
+        // Проверка на ошибки, чтобы избежать "null" в счетчиках
+        if (e1 || e2 || e3 || e4 || e5 || e6) {
+             throw new Error('Одна или несколько операций подсчета не удались.');
+        }
+
+        const totalReviews = (trackRatingsCount || 0) + (albumRatingsCount || 0);
+
+        animateCounter(document.getElementById('stats-tracks-count'), tracksCount || 0);
+        animateCounter(document.getElementById('stats-albums-count'), albumsCount || 0);
+        animateCounter(document.getElementById('stats-artists-count'), artistsCount || 0);
+        animateCounter(document.getElementById('stats-users-count'), usersCount || 0);
+        animateCounter(document.getElementById('stats-reviews-count'), totalReviews || 0);
+
+    } catch (error) {
+        console.error("Ошибка при загрузке статистики:", error);
+        // Можно скрыть блок статистики или показать сообщение об ошибке
+        const statsSection = document.getElementById('stats-section');
+        if(statsSection) statsSection.style.display = 'none';
+    }
+}
+
+
 function initializeScrollers() {
     document.querySelectorAll('.scroll-wrapper').forEach(wrapper => {
         const scroller = wrapper.querySelector('.horizontal-scroll-container');
@@ -395,6 +460,8 @@ async function checkAuthAndLoadContent() {
     if (profileLink) {
         profileLink.style.display = 'inline';
     }
+
+    loadAndDisplayStats();
 
     const results = await Promise.allSettled([
         loadRecentReleases(),
