@@ -408,6 +408,58 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: v
     .ratings-summary { justify-content: center; }
 }
 
+/* ФУТЕР */
+footer {
+    padding: 3rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 3rem;
+    background-color: var(--subtle-bg);
+}
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+.footer-nav, .footer-contacts {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.footer-nav a, .footer-contacts a {
+    color: var(--text-color-secondary);
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.footer-nav a:hover {
+    color: var(--primary-color);
+}
+.footer-contacts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.footer-contacts a:hover {
+    color: var(--text-color);
+}
+.footer-contacts svg {
+    color: var(--text-color-secondary);
+    transition: color 0.2s ease;
+}
+.footer-contacts a:hover svg {
+    color: var(--text-color);
+}
+.footer-copyright {
+    color: var(--text-color-secondary);
+    font-size: 0.85em;
+    margin: 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
 @media (max-width: 600px) {
     h2 { font-size: 1.6em; }
     .release-info h2 { font-size: 1.8em; }

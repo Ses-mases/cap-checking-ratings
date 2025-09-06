@@ -39,16 +39,18 @@ async function loadTrackData(trackId) {
     trackArtist.innerHTML = '';
     trackTitle.innerHTML = '';
 
+    let artistDisplayString = 'Неизвестный артист';
+    let titleText = data.title;
+
     if (data.track_artists && data.track_artists.length > 0) {
         data.track_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
+        artistDisplayString = data.track_artists.map(item => item.artists.name).join(', ');
+
         const featuredArtists = data.track_artists.filter(a => !a.is_main_artist);
-        let titleText = data.title;
         if (featuredArtists.length > 0) {
             const featuredNames = featuredArtists.map(a => a.artists.name).join(', ');
             titleText += ` (ft. ${featuredNames})`;
         }
-        document.title = `${titleText} | Cap Checking Ratings`;
-        trackTitle.textContent = titleText;
 
         data.track_artists.forEach((item, index) => {
             const link = document.createElement('a');
@@ -59,12 +61,11 @@ async function loadTrackData(trackId) {
                 trackArtist.appendChild(document.createTextNode(', '));
             }
         });
-
-    } else {
-        document.title = `${data.title} | Cap Checking Ratings`;
-        trackTitle.textContent = data.title;
-        trackArtist.textContent = 'Неизвестный артист';
     }
+
+    document.title = `${artistDisplayString} - ${titleText} | Cap Checking Ratings`;
+    trackTitle.textContent = titleText;
+
 
     const releaseDate = data.release_date || data.albums?.release_date;
     trackReleaseDate.textContent = releaseDate 

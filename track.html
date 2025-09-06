@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cap Checking Ratings</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="header.css">
     <link rel="stylesheet" href="card.css">
@@ -111,11 +117,28 @@
     </main>
     
     <footer>
-        <div class="footer-links">
-            <a href="terms.html">Пользовательское соглашение</a>
-            <a href="privacy.html">Политика конфиденциальности</a>
+        <div class="footer-container">
+            <nav class="footer-nav">
+                <a href="terms.html">Пользовательское соглашение</a>
+                <a href="privacy.html">Политика конфиденциальности</a>
+                <a href="faq.html">FAQ</a>
+            </nav>
+            <div class="footer-contacts">
+                <a href="mailto:cap_checking_rating@solidmail.ru">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                        <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/>
+                    </svg>
+                    <span>cap_checking_rating@solidmail.ru</span>
+                </a>
+                <a href="https://t.me/+ya6Lm1Dw-140MjRi" target="_blank" rel="noopener noreferrer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                        <path d="M21.19,2.81a2.25,2.25,0,0,0-3.18,0L2.39,18.43a1,1,0,0,0,.54,1.86,1,1,0,0,0,.46-.11l3.78-2.3,4.4,3.29a1,1,0,0,0,1.35-.31l8.32-17.75A2.25,2.25,0,0,0,21.19,2.81ZM12,18.88l-3.23-2.42,10-8.89-6.72,6.47Z"/>
+                    </svg>
+                    <span>Telegram</span>
+                </a>
+            </div>
+            <p class="footer-copyright">&copy; 2025 Cap Checking Ratings. Все права защищены.</p>
         </div>
-        <p>&copy; 2025 Cap Checking Ratings</p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="common.js" defer></script> 

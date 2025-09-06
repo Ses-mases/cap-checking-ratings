@@ -22,7 +22,7 @@ async function loadUserData(userId) {
     const trackRatingsData = trackRatingsRes.data;
     const albumRatingsData = albumRatingsRes.data;
 
-    document.title = `${profileData.username || 'Пользователь'} | Cap Checking Ratings`;
+    document.title = `Профиль: ${profileData.username || 'Пользователь'} | Cap Checking Ratings`;
     profileUsername.textContent = profileData.username || 'Имя не указано';
     const finalAvatarUrl = profileData.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';
     profileAvatar.src = getTransformedImageUrl(finalAvatarUrl, { width: 240, height: 240, resize: 'cover' });

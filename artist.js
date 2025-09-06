@@ -121,7 +121,7 @@ async function loadArtistData(artistId) {
             throw new Error('Артист с таким ID не найден в базе данных.');
         }
 
-        document.title = `${artistData.name} | Cap Checking Ratings`;
+        document.title = `Артист: ${artistData.name} | Cap Checking Ratings`;
         artistName.textContent = artistData.name;
         artistDescription.textContent = artistData.description || 'Описание отсутствует.';
         const finalAvatarUrl = artistData.avatar_url || 'https://texytgcdtafeejqxftqj.supabase.co/storage/v1/object/public/avatars/public/avatar.png';

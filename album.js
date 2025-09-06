@@ -55,12 +55,17 @@ async function loadAlbumData(albumId) {
         throw new Error('Альбом не найден или произошла ошибка при загрузке.');
     }
     
-    document.title = `${data.title} | Cap Checking Ratings`;
+    let artistNames = 'Неизвестный артист';
+    if (data.album_artists && data.album_artists.length > 0) {
+        data.album_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
+        artistNames = data.album_artists.map(item => item.artists.name).join(', ');
+    }
+    
+    document.title = `${artistNames} - ${data.title} | Cap Checking Ratings`;
     albumTitle.textContent = data.title;
     albumArtist.innerHTML = '';
     
     if (data.album_artists && data.album_artists.length > 0) {
-        data.album_artists.sort((a, b) => b.is_main_artist - a.is_main_artist);
         data.album_artists.forEach((item, index) => {
             const link = document.createElement('a');
             link.href = `artist.html?id=${item.artists.id}`;

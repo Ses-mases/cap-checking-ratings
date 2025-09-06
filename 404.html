@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Зал Легенд | Cap Checking Ratings</title>
+    <title>Страница не найдена | Cap Checking Ratings</title>
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -12,11 +12,30 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="header.css">
-    <link rel="stylesheet" href="card.css">
-    <link rel="stylesheet" href="profile.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .not-found-main {
+            text-align: center;
+            padding: 4rem 1rem;
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .not-found-main h2 {
+            font-size: 5em;
+            color: var(--primary-color);
+            margin: 0;
+        }
+        .not-found-main p {
+            font-size: 1.2em;
+            color: var(--text-color-secondary);
+            margin: 1rem 0 2rem 0;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -60,14 +79,10 @@
     </header>
     <div class="menu-overlay"></div>
 
-    <main>
-        <section id="legends-section">
-            <h2>Зал Легенд</h2>
-            <p class="legends-description">Альбомы, средняя экспертная оценка которых превысила 27 баллов из 30.</p>
-            <div id="legends-grid-container">
-                <p>Загрузка легендарных альбомов...</p>
-            </div>
-        </section>
+    <main class="not-found-main">
+        <h2>404</h2>
+        <p>К сожалению, страница, которую вы ищете, не существует.</p>
+        <a href="index.html" class="button button-primary">Вернуться на главную</a>
     </main>
 
     <footer>
@@ -96,6 +111,5 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="common.js" defer></script> 
-    <script src="legends.js" defer></script> 
 </body>
 </html>
