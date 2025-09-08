@@ -155,15 +155,52 @@ a.search-result-item:hover { background-color: var(--subtle-bg); color: var(--pr
 
 
 /* --- Responsive Header --- */
-@media (max-width: 900px) {
-    header { flex-wrap: wrap; justify-content: space-between; }
-    header h1 { order: 1; flex-grow: 1; text-align: left; padding: 0; margin: 0; }
-    .nav-wrapper { order: 2; flex: 0 1 auto; }
-    #search-container { order: 3; flex-basis: 100%; max-width: none; }
+@media (max-width: 768px) {
+    header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+    }
+
+    /* Row 1: Title */
+    header h1 {
+        order: 1;
+        flex-basis: 100%;
+        text-align: center;
+        font-size: 1.3em;
+        margin: 0;
+    }
+
+    /* Row 2: Controls are ordered to appear as: Notifications - Search - Menu */
+    
+    /* Make the wrapper disappear, promoting its children to be flex items */
+    .nav-wrapper {
+        order: 2;
+        display: contents;
+    }
+
+    #notifications-container {
+        order: 3;
+    }
+
+    #search-container {
+        order: 4;
+        flex-grow: 1; /* Allows search to fill the space */
+        min-width: 100px; /* Prevents it from becoming too small */
+        margin: 0 0.5rem;
+    }
+
+    #menu-toggle-button {
+        order: 5;
+    }
 }
+
 
 @media (max-width: 600px) {
     .notifications-dropdown {
-        position: fixed; top: 70px; left: 10px; right: 10px; width: auto;
+        position: fixed; top: 110px; /* Adjusted for the new two-row header height */
+        left: 10px; right: 10px; width: auto;
     }
 }

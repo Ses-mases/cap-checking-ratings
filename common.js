@@ -540,6 +540,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (menuToggleButton && mainNav && menuOverlay) {
         const toggleMenu = () => {
+            // --- ИЗМЕНЕНИЕ: Закрываем уведомления при открытии меню ---
+            const notificationsDropdown = document.getElementById('notifications-dropdown');
+            if (notificationsDropdown) {
+                notificationsDropdown.classList.remove('is-visible');
+            }
+            // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
             const isOpen = mainNav.classList.toggle('is-open');
             menuOverlay.classList.toggle('is-visible', isOpen);
             document.body.classList.toggle('menu-open', isOpen);
