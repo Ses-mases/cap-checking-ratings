@@ -201,6 +201,104 @@ async function handleWaitButtonClick() {
     }
 }
 
+async function loadUnratedReleases() {
+    const container = document.getElementById('unrated-container');
+    if (!container) return;
+
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
+    try {
+        const { data: albumsData, error: albumsError } = await supabaseClient
+            .from('albums')
+            .select(`id, title, cover_art_url, release_date, album_artists(artists(name)), album_ratings(count)`);
+        if (albumsError) throw albumsError;
+
+        const { data: singlesData, error: singlesError } = await supabaseClient
+            .from('tracks')
+            .select(`id, title, cover_art_url, release_date, albums(cover_art_url), track_artists(artists(name)), ratings(count)`)
+            .is('album_id', null);
+        if (singlesError) throw singlesError;
+        
+        const getRatingCount = (item) => (item.album_ratings || item.ratings)[0]?.count || 0;
+
+        const albumsWithZeroRatings = albumsData.filter(a => getRatingCount(a) === 0);
+        const albumsWithOneRating = albumsData.filter(a => getRatingCount(a) === 1);
+        const tracksWithZeroRatings = singlesData.filter(t => getRatingCount(t) === 0);
+        const tracksWithOneRating = singlesData.filter(t => getRatingCount(t) === 1);
+
+        const sortByDate = (a, b) => new Date(b.release_date) - new Date(a.release_date);
+        
+        albumsWithZeroRatings.sort(sortByDate);
+        albumsWithOneRating.sort(sortByDate);
+        tracksWithZeroRatings.sort(sortByDate);
+        tracksWithOneRating.sort(sortByDate);
+
+        const combinedList = [
+            ...albumsWithZeroRatings,
+            ...albumsWithOneRating,
+            ...tracksWithZeroRatings,
+            ...tracksWithOneRating
+        ];
+
+        const mapArtists = (artistsRel) => artistsRel?.map(a => a.artists.name).join(', ') || 'Неизвестный артист';
+
+        const allUnratedReleases = combinedList.map(item => {
+            const isAlbum = 'album_ratings' in item;
+            return {
+                link: isAlbum ? `album.html?id=${item.id}` : `track.html?id=${item.id}`,
+                coverUrl: getTransformedImageUrl(isAlbum ? item.cover_art_url : (item.cover_art_url || item.albums?.cover_art_url), { width: 500, height: 500, resize: 'cover' }),
+                title: item.title,
+                artistName: mapArtists(isAlbum ? item.album_artists : item.track_artists)
+            };
+        });
+
+        if (allUnratedReleases.length === 0) {
+            const p = document.createElement('p');
+            p.textContent = 'Все релизы оценены!';
+            container.appendChild(p);
+            return;
+        }
+
+        allUnratedReleases.forEach(release => {
+            const cardLink = document.createElement('a');
+            cardLink.href = release.link;
+            cardLink.className = 'card-link';
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const img = document.createElement('img');
+            img.src = release.coverUrl || 'https://via.placeholder.com/250';
+            img.alt = `Обложка релиза ${release.title}`;
+            img.loading = 'lazy';
+            
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            const h3 = document.createElement('h3');
+            h3.textContent = release.title;
+            
+            const p = document.createElement('p');
+            p.textContent = release.artistName;
+
+            cardBody.appendChild(h3);
+            cardBody.appendChild(p);
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            cardLink.appendChild(card);
+            container.appendChild(cardLink);
+        });
+
+    } catch (error) {
+        console.error('Ошибка при загрузке неоцененных релизов:', error);
+        const p = document.createElement('p');
+        p.textContent = 'Не удалось загрузить данные.';
+        container.appendChild(p);
+    }
+}
+
 async function loadRecentReleases() {
     while (recentTracksContainer.firstChild) {
         recentTracksContainer.removeChild(recentTracksContainer.firstChild);
@@ -465,13 +563,14 @@ async function checkAuthAndLoadContent() {
 
     const results = await Promise.allSettled([
         loadRecentReleases(),
+        loadUnratedReleases(),
         loadTopTracks(),
         loadTopAlbums()
     ]);
 
     results.forEach((result, index) => {
         if (result.status === 'rejected') {
-            const failedFunctionName = ['loadRecentReleases', 'loadTopTracks', 'loadTopAlbums'][index];
+            const failedFunctionName = ['loadRecentReleases', 'loadUnratedReleases', 'loadTopTracks', 'loadTopAlbums'][index];
             console.error(`Ошибка при выполнении ${failedFunctionName}:`, result.reason);
         }
     });
