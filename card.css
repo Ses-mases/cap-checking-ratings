@@ -47,7 +47,8 @@
 
 /* --- Image Overlay Card (Index/Artist Pages) --- */
 #recent-tracks-section .card, 
-#artist-albums-section .card {
+#artist-albums-section .card,
+#unrated-section .card {
     position: relative;
     border: none;
     box-shadow: none;
@@ -55,7 +56,8 @@
     height: 100%;
 }
 #recent-tracks-section .card-link, 
-#artist-albums-section .card-link {
+#artist-albums-section .card-link,
+#unrated-section .card-link {
     width: 280px;
     height: 280px;
     border-radius: var(--radius-lg);
@@ -65,28 +67,33 @@
     transition: box-shadow 0.3s ease;
 }
 #recent-tracks-section .card-link:hover, 
-#artist-albums-section .card-link:hover {
+#artist-albums-section .card-link:hover,
+#unrated-section .card-link:hover {
     box-shadow: var(--shadow-md);
 }
 #recent-tracks-section .card-link:hover .card, 
-#artist-albums-section .card-link:hover .card {
+#artist-albums-section .card-link:hover .card,
+#unrated-section .card-link:hover .card {
     transform: none; /* Отключаем старый эффект */
     box-shadow: none;
     border: none;
 }
 #recent-tracks-section .card img, 
-#artist-albums-section .card img {
+#artist-albums-section .card img,
+#unrated-section .card img {
     height: 100%;
     width: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
 }
 #recent-tracks-section .card-link:hover img, 
-#artist-albums-section .card-link:hover img {
+#artist-albums-section .card-link:hover img,
+#unrated-section .card-link:hover img {
     transform: scale(1.1);
 }
 #recent-tracks-section .card-body, 
-#artist-albums-section .card-body {
+#artist-albums-section .card-body,
+#unrated-section .card-body {
     position: absolute;
     bottom: 0; left: 0; right: 0; z-index: 2;
     padding: 1.5rem 1.25rem;
@@ -94,12 +101,14 @@
     color: white;
 }
 #recent-tracks-section .card-body h3, 
-#artist-albums-section .card-body h3 {
+#artist-albums-section .card-body h3,
+#unrated-section .card-body h3 {
     font-size: 1.3em;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 #recent-tracks-section .card-body p, 
-#artist-albums-section .card-body p {
+#artist-albums-section .card-body p,
+#unrated-section .card-body p {
     color: white;
     opacity: 0.8;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -144,7 +153,8 @@
 /* --- Responsive Cards --- */
 @media (max-width: 600px) {
     #recent-tracks-section .card-link, 
-    #artist-albums-section .card-link { 
+    #artist-albums-section .card-link,
+    #unrated-section .card-link { 
         flex: 0 0 200px; 
         height: 200px; 
     }
