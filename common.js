@@ -1,7 +1,4 @@
-// --- ВРЕМЕННАЯ ПЕРЕАДРЕСАЦИЯ: Чтобы вернуть сайт в рабочее состояние, закомментируйте или удалите следующий блок кода ---
-if (!window.location.pathname.endsWith('/404.html')) {
-    window.location.href = '404.html';
-}
+
 
 // ОБЩАЯ НАСТРОЙКА SUPABASE
 const SUPABASE_URL = 'https://texytgcdtafeejqxftqj.supabase.co';
@@ -580,4 +577,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
 });
